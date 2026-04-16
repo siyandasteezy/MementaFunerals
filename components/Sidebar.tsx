@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 
 const navItems = [
@@ -48,15 +50,21 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [userName, setUserName] = useState('');
 
-  function handleLogout() {
-    logout();
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserName(user.user_metadata?.full_name || user.email || '');
+    });
+  }, []);
+
+  async function handleLogout() {
+    await logout();
     router.push('/');
   }
 
   return (
     <aside className="w-64 bg-[#0F2B5B] min-h-screen flex flex-col shadow-xl">
-      {/* Logo */}
       <div className="p-6 border-b border-blue-800">
         <Link href="/" className="flex items-center gap-2">
           <div className="relative w-8 h-8">
@@ -64,9 +72,9 @@ export default function Sidebar() {
           </div>
           <span className="text-white text-lg font-bold">Mementa</span>
         </Link>
+        {userName && <p className="text-blue-300 text-xs mt-2 truncate">{userName}</p>}
       </div>
 
-      {/* Nav items */}
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -75,9 +83,7 @@ export default function Sidebar() {
               key={item.label}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm font-medium ${
-                isActive
-                  ? 'bg-[#C49A22] text-white'
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                isActive ? 'bg-[#C49A22] text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white'
               }`}
             >
               {item.icon}
@@ -87,7 +93,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Logout */}
       <div className="p-4 border-t border-blue-800">
         <button
           onClick={handleLogout}

@@ -1,89 +1,85 @@
-import { openDB, IDBPDatabase } from 'idb';
+import { supabase } from './supabase';
 import { Program } from './types';
 
-const PROGRAMS_KEY = 'mementa_programs';
-const DB_NAME = 'mementa_db';
-const DB_VERSION = 1;
-const PDF_STORE = 'pdfs';
+const BUCKET = 'programs';
 
-async function getDB(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(PDF_STORE)) {
-        db.createObjectStore(PDF_STORE);
-      }
-    },
-  });
+function toProgram(row: Record<string, unknown>): Program {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    deceasedName: row.deceased_name as string,
+    birthYear: row.birth_year as string,
+    deathYear: row.death_year as string,
+    eventDate: (row.event_date as string) ?? '',
+    eventLocation: (row.event_location as string) ?? '',
+    createdAt: row.created_at as string,
+    views: (row.views as number) ?? 0,
+  };
 }
 
-// ---- Program metadata (localStorage) ----
+export async function saveProgram(
+  program: Omit<Program, 'id' | 'createdAt' | 'views'>
+): Promise<Program> {
+  const { data, error } = await supabase
+    .from('programs')
+    .insert({
+      user_id: program.userId,
+      deceased_name: program.deceasedName,
+      birth_year: program.birthYear,
+      death_year: program.deathYear,
+      event_date: program.eventDate || null,
+      event_location: program.eventLocation,
+    })
+    .select()
+    .single();
 
-export function saveProgram(program: Program): void {
-  if (typeof window === 'undefined') return;
-  const programs = getAllPrograms();
-  const existing = programs.findIndex((p) => p.id === program.id);
-  if (existing >= 0) {
-    programs[existing] = program;
-  } else {
-    programs.push(program);
-  }
-  localStorage.setItem(PROGRAMS_KEY, JSON.stringify(programs));
+  if (error) throw error;
+  return toProgram(data);
 }
 
-export function getProgram(id: string): Program | null {
-  if (typeof window === 'undefined') return null;
-  const programs = getAllPrograms();
-  return programs.find((p) => p.id === id) || null;
+export async function getProgram(id: string): Promise<Program | null> {
+  const { data, error } = await supabase
+    .from('programs')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) return null;
+  return toProgram(data);
 }
 
-export function getAllPrograms(): Program[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const data = localStorage.getItem(PROGRAMS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+export async function getAllPrograms(userId: string): Promise<Program[]> {
+  const { data, error } = await supabase
+    .from('programs')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return [];
+  return data.map(toProgram);
 }
 
-export function updateProgramViews(id: string): void {
-  if (typeof window === 'undefined') return;
-  const program = getProgram(id);
-  if (program) {
-    program.views = (program.views || 0) + 1;
-    saveProgram(program);
-  }
+export async function savePDF(programId: string, file: File | Blob): Promise<void> {
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(`${programId}.pdf`, file, { contentType: 'application/pdf', upsert: true });
+
+  if (error) throw error;
 }
 
-export function deleteProgram(id: string): void {
-  if (typeof window === 'undefined') return;
-  const programs = getAllPrograms().filter((p) => p.id !== id);
-  localStorage.setItem(PROGRAMS_KEY, JSON.stringify(programs));
-  deletePDF(id);
+export function getPDFUrl(programId: string): string {
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(`${programId}.pdf`);
+  return data.publicUrl;
 }
 
-// ---- PDF blobs (IndexedDB) ----
-
-export async function savePDF(id: string, blob: Blob): Promise<void> {
-  const db = await getDB();
-  await db.put(PDF_STORE, blob, id);
+export async function deleteProgram(id: string): Promise<void> {
+  await supabase.storage.from(BUCKET).remove([`${id}.pdf`]);
+  await supabase.from('programs').delete().eq('id', id);
 }
 
-export async function getPDF(id: string): Promise<Blob | null> {
-  try {
-    const db = await getDB();
-    const result = await db.get(PDF_STORE, id);
-    return result || null;
-  } catch {
-    return null;
-  }
-}
-
-export async function deletePDF(id: string): Promise<void> {
-  try {
-    const db = await getDB();
-    await db.delete(PDF_STORE, id);
-  } catch {
-    // ignore
+export async function updateProgramViews(id: string): Promise<void> {
+  const { data } = await supabase.from('programs').select('views').eq('id', id).single();
+  if (data) {
+    await supabase.from('programs').update({ views: (data.views || 0) + 1 }).eq('id', id);
   }
 }

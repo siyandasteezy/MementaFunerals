@@ -9,17 +9,3 @@ export interface Program {
   createdAt: string;
   views: number;
 }
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: string;
-}
-
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-}

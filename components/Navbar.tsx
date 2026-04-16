@@ -3,21 +3,27 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { getCurrentUser, logout } from '@/lib/auth';
+import { logout } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const u = getCurrentUser();
-    setUser(u);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setLoggedIn(!!session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     router.push('/');
   }
 
@@ -46,7 +52,7 @@ export default function Navbar() {
             <Link href="/#features" className="text-gray-300 hover:text-white transition-colors text-sm">
               Features
             </Link>
-            {user ? (
+            {loggedIn ? (
               <>
                 <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors text-sm">
                   Dashboard
@@ -100,7 +106,7 @@ export default function Navbar() {
             <Link href="/#features" className="text-gray-300 hover:text-white text-sm" onClick={() => setMenuOpen(false)}>
               Features
             </Link>
-            {user ? (
+            {loggedIn ? (
               <>
                 <Link href="/dashboard" className="text-gray-300 hover:text-white text-sm" onClick={() => setMenuOpen(false)}>
                   Dashboard

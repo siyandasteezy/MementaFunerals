@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Program } from '@/lib/types';
 import { deleteProgram } from '@/lib/storage';
@@ -10,10 +11,17 @@ interface ProgramCardProps {
 }
 
 export default function ProgramCard({ program, onDeleted }: ProgramCardProps) {
-  function handleDelete() {
-    if (confirm(`Are you sure you want to delete the program for ${program.deceasedName}?`)) {
-      deleteProgram(program.id);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!confirm(`Are you sure you want to delete the program for ${program.deceasedName}?`)) return;
+    setDeleting(true);
+    try {
+      await deleteProgram(program.id);
       onDeleted?.();
+    } catch {
+      alert('Failed to delete program. Please try again.');
+      setDeleting(false);
     }
   }
 
@@ -24,16 +32,11 @@ export default function ProgramCard({ program, onDeleted }: ProgramCardProps) {
   }
 
   const eventDate = program.eventDate
-    ? new Date(program.eventDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+    ? new Date(program.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '';
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-      {/* Header gradient */}
       <div className="bg-gradient-to-br from-[#0F2B5B] to-[#1a3d7c] h-28 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-1">
@@ -45,14 +48,9 @@ export default function ProgramCard({ program, onDeleted }: ProgramCardProps) {
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-4">
-        <h3 className="font-bold text-[#0F2B5B] text-lg leading-tight truncate">
-          {program.deceasedName}
-        </h3>
-        <p className="text-gray-500 text-sm mt-1">
-          {program.birthYear} – {program.deathYear}
-        </p>
+        <h3 className="font-bold text-[#0F2B5B] text-lg leading-tight truncate">{program.deceasedName}</h3>
+        <p className="text-gray-500 text-sm mt-1">{program.birthYear} – {program.deathYear}</p>
         {eventDate && (
           <p className="text-gray-400 text-xs mt-1 flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,33 +67,14 @@ export default function ProgramCard({ program, onDeleted }: ProgramCardProps) {
           {program.views || 0} views
         </p>
 
-        {/* Actions */}
         <div className="mt-4 flex gap-2 flex-wrap">
-          <Link
-            href={`/programs/${program.id}`}
-            className="flex-1 text-center bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-          >
-            View
-          </Link>
-          <button
-            onClick={handleCopyLink}
-            className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-          >
-            Share
-          </button>
-          <Link
-            href={`/programs/${program.id}`}
-            className="flex-1 text-center bg-[#C49A22] hover:bg-[#B8860B] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-          >
-            QR
-          </Link>
+          <Link href={`/programs/${program.id}`} className="flex-1 text-center bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">View</Link>
+          <button onClick={handleCopyLink} className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors">Share</button>
+          <Link href={`/programs/${program.id}`} className="flex-1 text-center bg-[#C49A22] hover:bg-[#B8860B] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">QR</Link>
         </div>
 
-        <button
-          onClick={handleDelete}
-          className="mt-2 w-full text-center text-red-400 hover:text-red-600 text-xs py-1 transition-colors"
-        >
-          Delete
+        <button onClick={handleDelete} disabled={deleting} className="mt-2 w-full text-center text-red-400 hover:text-red-600 disabled:opacity-50 text-xs py-1 transition-colors">
+          {deleting ? 'Deleting...' : 'Delete'}
         </button>
       </div>
     </div>

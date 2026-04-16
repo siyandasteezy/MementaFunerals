@@ -2,19 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user) {
-      router.replace('/login');
-    } else {
-      setChecked(true);
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) router.replace('/login');
+      else setChecked(true);
+    });
   }, [router]);
 
   if (!checked) {

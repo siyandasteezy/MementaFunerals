@@ -7,8 +7,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Sidebar from '@/components/Sidebar';
 import PDFViewer from '@/components/PDFViewer';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
-import { getProgram } from '@/lib/storage';
-import { getCurrentUser } from '@/lib/auth';
+import { getProgram, getPDFUrl } from '@/lib/storage';
+import { supabase } from '@/lib/supabase';
 import { Program } from '@/lib/types';
 
 export default function ProgramDetailPage() {
@@ -17,18 +17,21 @@ export default function ProgramDetailPage() {
   const id = params.id as string;
 
   const [program, setProgram] = useState<Program | null>(null);
+  const [pdfUrl, setPdfUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    const p = getProgram(id);
-    if (!p || (user && p.userId !== user.id)) {
-      router.push('/dashboard');
-      return;
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push('/login'); return; }
+      const p = await getProgram(id);
+      if (!p || p.userId !== user.id) { router.push('/dashboard'); return; }
+      setProgram(p);
+      setPdfUrl(getPDFUrl(id));
+      setLoading(false);
     }
-    setProgram(p);
-    setLoading(false);
+    load();
   }, [id, router]);
 
   function handleCopyLink() {
@@ -151,7 +154,7 @@ export default function ProgramDetailPage() {
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                   <h2 className="text-lg font-bold text-[#0F2B5B] mb-4">Program PDF</h2>
-                  <PDFViewer programId={id} height="650px" />
+                  <PDFViewer url={pdfUrl} height="650px" />
                 </div>
               </div>
 
