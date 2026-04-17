@@ -9,32 +9,87 @@ import ProgramCard from '@/components/ProgramCard';
 import { supabase } from '@/lib/supabase';
 import { getAllPrograms } from '@/lib/storage';
 import { Program } from '@/lib/types';
+import { getSubscription, Subscription } from '@/lib/subscriptions';
 
 export default function DashboardPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [firstName, setFirstName] = useState('');
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     setFirstName((user.user_metadata?.full_name || user.email || '').split(' ')[0]);
-    const all = await getAllPrograms(user.id);
+    const [all, sub] = await Promise.all([
+      getAllPrograms(user.id),
+      getSubscription(user.id),
+    ]);
     setPrograms(all);
+    setSubscription(sub);
   }
 
   useEffect(() => { loadData(); }, []);
 
   const totalViews = programs.reduce((acc, p) => acc + (p.views || 0), 0);
 
+  function SubscriptionBanner() {
+    if (!subscription) return null;
+    const { status, trialEndsAt, currentPeriodEnd } = subscription;
+
+    if (status === 'trial') {
+      const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86400000));
+      return (
+        <div className="mb-6 flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-amber-800 text-sm">
+          <span>
+            <span className="mr-1">🕐</span>
+            <strong>Free Trial:</strong> {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining — Upgrade for R100/month
+          </span>
+          <Link href="/subscribe" className="ml-4 flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+            Upgrade Now
+          </Link>
+        </div>
+      );
+    }
+
+    if (status === 'expired' || status === 'cancelled') {
+      return (
+        <div className="mb-6 flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-5 py-3 text-red-800 text-sm">
+          <span>
+            <span className="mr-1">⚠️</span>
+            <strong>Trial Expired</strong> — Upgrade to continue creating programs
+          </span>
+          <Link href="/subscribe" className="ml-4 flex-shrink-0 bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+            Subscribe Now
+          </Link>
+        </div>
+      );
+    }
+
+    if (status === 'active') {
+      const renewalDate = currentPeriodEnd
+        ? new Date(currentPeriodEnd).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })
+        : 'N/A';
+      return (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl px-5 py-3 text-green-800 text-sm">
+          <span>✅ <strong>Active Subscription</strong> — Renews {renewalDate}</span>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
   return (
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <main className="flex-1 p-8 overflow-auto">
-          <div className="mb-8">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-[#0F2B5B]">Welcome back, {firstName || 'there'} 👋</h1>
             <p className="text-gray-500 mt-1">Manage your funeral programs and share them with loved ones.</p>
           </div>
+
+          <SubscriptionBanner />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatsCard title="Total Programs" value={programs.length} color="bg-blue-50"

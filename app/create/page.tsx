@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Sidebar from '@/components/Sidebar';
 import { supabase } from '@/lib/supabase';
 import { saveProgram, savePDF } from '@/lib/storage';
+import { isSubscriptionActive } from '@/lib/subscriptions';
 
 type Step = 1 | 2 | 3;
 
@@ -47,6 +48,12 @@ export default function CreatePage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login'); return; }
+
+      const active = await isSubscriptionActive(user.id);
+      if (!active) {
+        router.push('/subscribe?reason=expired');
+        return;
+      }
 
       const program = await saveProgram({
         userId: user.id,
