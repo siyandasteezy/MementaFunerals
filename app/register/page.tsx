@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { registerUser } from '@/lib/auth';
+import { createSubscription } from '@/lib/subscriptions';
 import { supabase } from '@/lib/supabase';
 
 export default function RegisterPage() {
@@ -29,7 +30,8 @@ export default function RegisterPage() {
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true);
     try {
-      await registerUser(name, email, password);
+      const data = await registerUser(name, email, password);
+      if (data.user) await createSubscription(data.user.id);
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
