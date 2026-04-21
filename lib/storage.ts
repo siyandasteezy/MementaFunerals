@@ -13,13 +13,17 @@ function toProgram(row: Record<string, unknown>): Program {
     eventDate: (row.event_date as string) ?? '',
     eventLocation: (row.event_location as string) ?? '',
     createdAt: row.created_at as string,
+    expiresAt: (row.expires_at as string) ?? null,
     views: (row.views as number) ?? 0,
   };
 }
 
 export async function saveProgram(
-  program: Omit<Program, 'id' | 'createdAt' | 'views'>
+  program: Omit<Program, 'id' | 'createdAt' | 'expiresAt' | 'views'>
 ): Promise<Program> {
+  // Programme is live for 48 hours from creation
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
   const { data, error } = await supabase
     .from('programs')
     .insert({
@@ -29,6 +33,7 @@ export async function saveProgram(
       death_year: program.deathYear,
       event_date: program.eventDate || null,
       event_location: program.eventLocation,
+      expires_at: expiresAt,
     })
     .select()
     .single();

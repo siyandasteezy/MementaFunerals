@@ -120,7 +120,7 @@ export default function SubscribePage() {
                     <div className="bg-[#0F2B5B] px-8 py-6">
                       <h2 className="text-xl font-bold text-white">Activate Monthly Plan</h2>
                       <div className="mt-2">
-                        <span className="text-4xl font-extrabold text-white">R100</span>
+                        <span className="text-4xl font-extrabold text-white">R250</span>
                         <span className="text-blue-300 ml-1">/month</span>
                       </div>
                     </div>
@@ -169,7 +169,7 @@ export default function SubscribePage() {
                           </div>
                           <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
                             <span className="text-gray-700">Amount</span>
-                            <span className="text-[#0F2B5B]">R100.00</span>
+                            <span className="text-[#0F2B5B]">R250.00</span>
                           </div>
                         </div>
                         <p className="text-xs text-gray-400 mt-2">

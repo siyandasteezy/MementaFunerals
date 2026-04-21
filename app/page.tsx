@@ -21,10 +21,10 @@ const featureRows = [
     imageLeft: false,
   },
   {
-    title: 'Honour with Dignity',
-    desc: 'Create a lasting digital tribute that families can revisit long after the service.',
-    image: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=700&q=80',
-    imageAlt: 'Memorial candle burning peacefully',
+    title: 'Advanced Analytics & Data Collection',
+    desc: 'Track how many people viewed each program, when they scanned, and where — service improvement made easy.',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=700&q=80',
+    imageAlt: 'Analytics dashboard on a laptop screen',
     imageLeft: true,
   },
 ];
@@ -60,33 +60,22 @@ const howItWorksSteps = [
       </svg>
     ),
   },
-];
-
-const testimonials = [
   {
-    quote: "Mementa made it so easy to share my mother's program with all our family abroad. Absolutely beautiful.",
-    name: 'Sarah M.',
-    role: 'Family Member',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80',
-  },
-  {
-    quote: "We've used Mementa for every service this year. Our clients love how professional it looks on their phones.",
-    name: 'Thabo K.',
-    role: 'Owner, Sunrise Funeral Services',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80',
-  },
-  {
-    quote: 'The QR code idea is genius. No more printing hundreds of copies. We save so much money.',
-    name: 'Priya N.',
-    role: 'Event Coordinator',
-    avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=100&q=80',
+    num: '04',
+    title: 'Programme Live for 48 Hours',
+    desc: 'Your programme is publicly accessible for 48 hours, then archived and automatically removed after 7 days.',
+    icon: (
+      <svg className="w-7 h-7 text-[#C49A22]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
   },
 ];
 
 const faqItems = [
   {
     q: 'How does the free trial work?',
-    a: 'Your first 30 days are completely free. No credit card required. After that, it\'s R100 per month.',
+    a: 'Your first 30 days are completely free. No credit card required. After that, it\'s R250 per month.',
   },
   {
     q: 'Do attendees need to download an app?',
@@ -127,7 +116,7 @@ export default function LandingPage() {
           <div className="text-white">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-sm mb-6 backdrop-blur-sm">
               <span className="w-2 h-2 bg-[#C49A22] rounded-full animate-pulse" />
-              Honoring lives across South Africa
+              For Funeral &amp; All Life Events
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
               Honor Every Life with a{' '}
@@ -237,7 +226,7 @@ export default function LandingPage() {
               Three simple steps to create and share a beautiful digital program
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {howItWorksSteps.map((step, i) => (
               <div key={step.num} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center relative">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#0F2B5B] text-white rounded-full flex items-center justify-center text-xs font-bold">
@@ -248,39 +237,6 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-bold text-[#0F2B5B] text-xl mb-2">{step.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#0F2B5B] mb-4">Families Trust Mementa</h2>
-            <p className="text-gray-500 text-lg">Hear from those who have used Mementa during their most meaningful moments</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((t) => (
-              <div key={t.name} className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex mb-4 gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-[#C49A22]" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0">
-                    <Image src={t.avatar} alt={t.name} fill className="object-cover" unoptimized />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[#0F2B5B] text-sm">{t.name}</p>
-                    <p className="text-gray-400 text-xs">{t.role}</p>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
@@ -331,9 +287,9 @@ export default function LandingPage() {
               <div className="mb-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Monthly Plan</span>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-1">R100 / month</h3>
+              <h3 className="text-2xl font-bold text-white mb-1">R250 / month</h3>
               <div className="my-4">
-                <span className="text-5xl font-extrabold text-white">R100</span>
+                <span className="text-5xl font-extrabold text-white">R250</span>
                 <span className="text-blue-300 ml-1 text-sm">/month</span>
               </div>
               <ul className="space-y-3 mb-8 flex-1">

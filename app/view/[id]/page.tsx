@@ -15,6 +15,7 @@ export default function PublicViewPage() {
   const [pdfUrl, setPdfUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expired, setExpired] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -22,6 +23,13 @@ export default function PublicViewPage() {
         const p = await getProgram(id);
         if (!p) {
           setError('Program not found. The link may be invalid or the program has been removed.');
+          setLoading(false);
+          return;
+        }
+        // Check 48-hour expiry
+        if (p.expiresAt && new Date(p.expiresAt) < new Date()) {
+          setExpired(true);
+          setProgram(p);
           setLoading(false);
           return;
         }
@@ -43,6 +51,30 @@ export default function PublicViewPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-[#C49A22] mx-auto mb-4" />
           <p className="text-blue-200 text-sm">Loading program...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (expired && program) {
+    return (
+      <div className="min-h-screen bg-[#0F2B5B] flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-white text-2xl font-bold mb-3">Programme Archived</h2>
+          <p className="text-blue-200 text-sm leading-relaxed mb-2">
+            <span className="font-semibold text-white">{program.deceasedName}</span>
+          </p>
+          <p className="text-blue-200 text-sm leading-relaxed mb-6">
+            This programme was live for 48 hours and has now been archived. It will be permanently removed 7 days after the service date.
+          </p>
+          <Link href="/" className="inline-block bg-[#C49A22] hover:bg-[#B8860B] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors">
+            Go to Mementa
+          </Link>
         </div>
       </div>
     );

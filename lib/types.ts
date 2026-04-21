@@ -7,5 +7,6 @@ export interface Program {
   eventDate: string;
   eventLocation: string;
   createdAt: string;
+  expiresAt: string | null;
   views: number;
 }
