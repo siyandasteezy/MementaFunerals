@@ -66,11 +66,10 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[#0F2B5B] min-h-screen flex flex-col shadow-xl">
       <div className="p-6 border-b border-blue-800">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="relative w-8 h-8">
-            <Image src="/logo.png" alt="Mementa" fill className="object-contain" />
+        <Link href="/">
+          <div className="relative w-36 h-10">
+            <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain object-left" />
           </div>
-          <span className="text-white text-lg font-bold">Mementa</span>
         </Link>
         {userName && <p className="text-blue-300 text-xs mt-2 truncate">{userName}</p>}
       </div>

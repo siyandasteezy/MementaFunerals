@@ -32,16 +32,15 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-10 h-10">
+          <Link href="/">
+            <div className="relative w-36 h-12">
               <Image
-                src="/logo.png"
+                src="/mementa-logo.png"
                 alt="Mementa Logo"
                 fill
-                className="object-contain"
+                className="object-contain object-left"
               />
             </div>
-            <span className="text-[#0F2B5B] text-xl font-bold tracking-wide">Mementa</span>
           </Link>
 
           {/* Desktop Nav */}

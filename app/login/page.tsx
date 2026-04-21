@@ -37,11 +37,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#0F2B5B] via-[#1a3d7c] to-[#0F2B5B] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-3">
-            <div className="relative w-12 h-12">
-              <Image src="/logo.png" alt="Mementa" fill className="object-contain" />
+          <Link href="/">
+            <div className="relative w-44 h-14 mx-auto">
+              <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain" />
             </div>
-            <span className="text-white text-2xl font-bold">Mementa</span>
           </Link>
           <p className="text-blue-200 mt-3 text-sm">Welcome back. Sign in to your account.</p>
         </div>

@@ -107,11 +107,10 @@ export default function PublicViewPage() {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-[#0F2B5B] text-white py-3 px-4 shadow-md">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-8 h-8">
-              <Image src="/logo.png" alt="Mementa" fill className="object-contain" />
+          <Link href="/">
+            <div className="relative w-32 h-9">
+              <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain object-left" />
             </div>
-            <span className="font-bold text-sm">Mementa</span>
           </Link>
           <span className="text-blue-200 text-xs">Digital Funeral Program</span>
         </div>
