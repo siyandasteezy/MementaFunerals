@@ -99,23 +99,20 @@ export default function LandingPage() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-        {/* White roses background */}
-        <Image
-          src="https://images.unsplash.com/photo-1490750967868-88df5691cc9e?auto=format&fit=crop&w=1920&q=80"
-          alt="White roses representing dignity and peace"
-          fill
-          className="object-cover"
-          priority
-          unoptimized
-        />
-        {/* Light white overlay so text stays readable but roses show through */}
-        <div className="absolute inset-0 bg-white/80" />
+      <section
+        className="relative min-h-[90vh] flex items-center overflow-hidden"
+        style={{
+          background: 'radial-gradient(ellipse at 70% 50%, #e8f0fb 0%, #f5f7ff 40%, #ffffff 100%)',
+        }}
+      >
+        {/* Decorative soft circles */}
+        <div className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-blue-50/60 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] rounded-full bg-amber-50/50 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left: text */}
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/70 border border-blue-100 rounded-full px-4 py-2 text-sm mb-6 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 bg-white border border-blue-100 rounded-full px-4 py-2 text-sm mb-6 shadow-sm">
               <span className="w-2 h-2 bg-[#C49A22] rounded-full animate-pulse" />
               <span className="text-[#0F2B5B] font-semibold">For Funerals &amp; All Life Events</span>
             </div>
@@ -136,7 +133,7 @@ export default function LandingPage() {
               </Link>
               <a
                 href="#how-it-works"
-                className="bg-white/80 hover:bg-white text-[#0F2B5B] border-2 border-[#0F2B5B] px-8 py-4 rounded-xl text-base font-semibold transition-all text-center backdrop-blur-sm"
+                className="bg-white hover:bg-gray-50 text-[#0F2B5B] border-2 border-[#0F2B5B] px-8 py-4 rounded-xl text-base font-semibold transition-all text-center"
               >
                 See How It Works
               </a>
