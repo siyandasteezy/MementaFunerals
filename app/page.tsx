@@ -99,31 +99,20 @@ export default function LandingPage() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Background image */}
-        <Image
-          src="https://images.unsplash.com/photo-1490750967868-88df5691cc9e?auto=format&fit=crop&w=1920&q=80"
-          alt="White roses representing dignity and peace"
-          fill
-          className="object-cover"
-          priority
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-[#0F2B5B]/80" />
-
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-28 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="bg-white min-h-[90vh] flex items-center">
+        <div className="w-full max-w-7xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left: text */}
-          <div className="text-white">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-sm mb-6 backdrop-blur-sm">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 text-sm mb-6">
               <span className="w-2 h-2 bg-[#C49A22] rounded-full animate-pulse" />
-              For Funeral &amp; All Life Events
+              <span className="text-[#0F2B5B] font-semibold">For Funerals &amp; All Life Events</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-[#0F2B5B]">
               Honor Every Life with a{' '}
               <span className="text-[#C49A22]">Beautiful</span>{' '}
               Digital Program
             </h1>
-            <p className="text-lg text-blue-100 mb-8 leading-relaxed max-w-lg">
+            <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
               Upload your funeral program PDF, generate a QR code, and share it with every attendee — instantly, from any device.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -135,19 +124,19 @@ export default function LandingPage() {
               </Link>
               <a
                 href="#how-it-works"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-xl text-base font-semibold transition-all backdrop-blur-sm text-center"
+                className="bg-white hover:bg-gray-50 text-[#0F2B5B] border-2 border-[#0F2B5B] px-8 py-4 rounded-xl text-base font-semibold transition-all text-center"
               >
                 See How It Works
               </a>
             </div>
-            <p className="text-blue-200 text-sm">
+            <p className="text-gray-400 text-sm">
               ✓ Free 30-day trial &nbsp;&nbsp; ✓ No credit card required &nbsp;&nbsp; ✓ Cancel anytime
             </p>
           </div>
 
           {/* Right: phone/QR card */}
           <div className="hidden lg:flex justify-center">
-            <div className="relative w-80 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20">
+            <div className="relative w-80 h-96 rounded-3xl overflow-hidden shadow-2xl border border-gray-100">
               <Image
                 src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=700&q=80"
                 alt="Scanning QR code on phone"
