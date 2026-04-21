@@ -143,15 +143,14 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Right: phone/QR card */}
+          {/* Right: programme preview card */}
           <div className="hidden lg:flex justify-center">
             <div className="relative w-80 h-96 rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
               <Image
-                src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=700&q=80"
-                alt="Scanning QR code on phone"
+                src="/programme.png"
+                alt="Digital funeral programme preview"
                 fill
                 className="object-cover"
-                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0F2B5B]/60 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
