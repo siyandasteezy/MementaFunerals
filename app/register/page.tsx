@@ -44,7 +44,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/">
-            <div className="relative w-44 h-14 mx-auto">
+            <div className="relative w-44 h-14 mx-auto rounded-lg overflow-hidden">
               <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain" />
             </div>
           </Link>

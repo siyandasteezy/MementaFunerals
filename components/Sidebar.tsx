@@ -67,7 +67,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-[#0F2B5B] min-h-screen flex flex-col shadow-xl">
       <div className="p-6 border-b border-blue-800">
         <Link href="/">
-          <div className="relative w-36 h-10">
+          <div className="relative w-36 h-10 rounded-lg overflow-hidden">
             <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain object-left" />
           </div>
         </Link>

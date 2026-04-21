@@ -108,7 +108,7 @@ export default function PublicViewPage() {
       <header className="bg-[#0F2B5B] text-white py-3 px-4 shadow-md">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/">
-            <div className="relative w-32 h-9">
+            <div className="relative w-32 h-9 rounded-lg overflow-hidden">
               <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain object-left" />
             </div>
           </Link>

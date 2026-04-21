@@ -33,7 +33,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
-            <div className="relative w-36 h-12">
+            <div className="relative w-36 h-12 rounded-lg overflow-hidden">
               <Image
                 src="/mementa-logo.png"
                 alt="Mementa Logo"
