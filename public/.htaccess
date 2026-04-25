@@ -1,0 +1,16 @@
+Options -MultiViews
+RewriteEngine On
+RewriteBase /
+
+# --- Step 1: serve real files and directories as-is ---
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# --- Step 2: /view/ANYTHING → the static placeholder page ---
+# Apache serves /view/_/index.html but the browser URL stays as
+# /view/REAL_ID, so the JS can read the real ID from window.location.
+RewriteRule ^view/([^/]+)/?$ /view/_/index.html [L]
+
+# --- Step 3: all other routes → SPA root ---
+RewriteRule ^ /index.html [L]
