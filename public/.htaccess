@@ -7,10 +7,11 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# --- Step 2: /view/ANYTHING → the static placeholder page ---
-# Apache serves /view/_/index.html but the browser URL stays as
-# /view/REAL_ID, so the JS can read the real ID from window.location.
+# --- Step 2: dynamic routes → static placeholder pages ---
+# Apache serves the placeholder internally; browser URL stays as the real ID
+# so the JS can read it from window.location.pathname at runtime.
 RewriteRule ^view/([^/]+)/?$ /view/_/index.html [L]
+RewriteRule ^programs/([^/]+)/?$ /programs/_/index.html [L]
 
-# --- Step 3: all other routes → SPA root ---
+# --- Step 3: all other SPA routes → index.html ---
 RewriteRule ^ /index.html [L]
