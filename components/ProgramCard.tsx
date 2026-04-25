@@ -26,7 +26,7 @@ export default function ProgramCard({ program, onDeleted }: ProgramCardProps) {
   }
 
   function handleCopyLink() {
-    const url = `${window.location.origin}/view/${program.id}`;
+    const url = `${window.location.origin}/view/?id=${program.id}`;
     navigator.clipboard.writeText(url);
     alert('Share link copied to clipboard!');
   }
@@ -68,9 +68,9 @@ export default function ProgramCard({ program, onDeleted }: ProgramCardProps) {
         </p>
 
         <div className="mt-4 flex gap-2 flex-wrap">
-          <Link href={`/programs/${program.id}`} className="flex-1 text-center bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">View</Link>
+          <Link href={`/programs/?id=${program.id}`} className="flex-1 text-center bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">View</Link>
           <button onClick={handleCopyLink} className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors">Share</button>
-          <Link href={`/programs/${program.id}`} className="flex-1 text-center bg-[#C49A22] hover:bg-[#B8860B] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">QR</Link>
+          <Link href={`/programs/?id=${program.id}`} className="flex-1 text-center bg-[#C49A22] hover:bg-[#B8860B] text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">QR</Link>
         </div>
 
         <button onClick={handleDelete} disabled={deleting} className="mt-2 w-full text-center text-red-400 hover:text-red-600 disabled:opacity-50 text-xs py-1 transition-colors">

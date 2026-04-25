@@ -2,16 +2,10 @@ Options -MultiViews
 RewriteEngine On
 RewriteBase /
 
-# --- Step 1: serve real files and directories as-is ---
+# Serve real files and directories directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# --- Step 2: dynamic routes → static placeholder pages ---
-# Apache serves the placeholder internally; browser URL stays as the real ID
-# so the JS can read it from window.location.pathname at runtime.
-RewriteRule ^view/([^/]+)/?$ /view/_/index.html [L]
-RewriteRule ^programs/([^/]+)/?$ /programs/_/index.html [L]
-
-# --- Step 3: all other SPA routes → index.html ---
+# All other routes → index.html (SPA fallback)
 RewriteRule ^ /index.html [L]

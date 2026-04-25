@@ -65,7 +65,7 @@ export default function CreatePage() {
       });
 
       await savePDF(program.id, pdfFile);
-      router.push(`/programs/${program.id}`);
+      router.push(`/programs/?id=${program.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to save program. Please try again.');
       setSaving(false);

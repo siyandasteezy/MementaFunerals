@@ -11,20 +11,19 @@ import { getProgram, getPDFUrl } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { Program } from '@/lib/types';
 
-export default function ProgramDetailClient() {
+export default function ProgramDetailPage() {
   const router = useRouter();
-
-  // Read the real ID from window.location at runtime (same pattern as ViewClient)
   const [id, setId] = useState('');
   const [program, setProgram] = useState<Program | null>(null);
   const [pdfUrl, setPdfUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Read programme ID from ?id= query param
   useEffect(() => {
-    const segments = window.location.pathname.split('/').filter(Boolean);
-    const realId = segments[segments.length - 1];
-    if (realId && realId !== '_') setId(realId);
+    const params = new URLSearchParams(window.location.search);
+    const realId = params.get('id') || '';
+    if (realId) setId(realId);
     else setLoading(false);
   }, []);
 
@@ -43,7 +42,7 @@ export default function ProgramDetailClient() {
   }, [id, router]);
 
   function handleCopyLink() {
-    const url = `${window.location.origin}/view/${id}`;
+    const url = `${window.location.origin}/view/?id=${id}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -65,12 +64,7 @@ export default function ProgramDetailClient() {
   if (!program) return null;
 
   const eventDate = program.eventDate
-    ? new Date(program.eventDate).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+    ? new Date(program.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     : '';
 
   return (
@@ -112,17 +106,15 @@ export default function ProgramDetailClient() {
                   )}
                 </div>
                 <div className="flex gap-3">
-                  <button
-                    onClick={handleCopyLink}
-                    className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all backdrop-blur-sm"
-                  >
+                  <button onClick={handleCopyLink}
+                    className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all backdrop-blur-sm">
                     {copied ? (
                       <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Copied!</>
                     ) : (
                       <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy Link</>
                     )}
                   </button>
-                  <a href={`/view/${id}`} target="_blank" rel="noopener noreferrer"
+                  <a href={`/view/?id=${id}`} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-[#C49A22] hover:bg-[#B8860B] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

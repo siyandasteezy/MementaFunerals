@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { getProgram, getPDFUrl, updateProgramViews } from '@/lib/storage';
 import { Program } from '@/lib/types';
 
-export default function ViewClient() {
+export default function ViewPage() {
   const [id, setId] = useState('');
   const [program, setProgram] = useState<Program | null>(null);
   const [pdfUrl, setPdfUrl] = useState('');
@@ -14,15 +14,13 @@ export default function ViewClient() {
   const [error, setError] = useState('');
   const [expired, setExpired] = useState(false);
 
-  // Extract the real programme ID from the browser URL at runtime.
-  // Apache rewrites /view/REAL_ID → /view/_/index.html (internal),
-  // so window.location.pathname still shows the real path.
+  // Read the programme ID from ?id= query param
   useEffect(() => {
-    const segments = window.location.pathname.split('/').filter(Boolean);
-    const realId = segments[segments.length - 1];
-    if (realId && realId !== '_') {
-      setId(realId);
-    } else {
+    const params = new URLSearchParams(window.location.search);
+    const realId = params.get('id') || '';
+    if (realId) setId(realId);
+    else {
+      setError('No programme ID supplied.');
       setLoading(false);
     }
   }, []);
@@ -155,18 +153,13 @@ export default function ViewClient() {
 
       <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
         <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
-          <iframe
-            src={pdfUrl}
-            className="w-full"
-            style={{ height: '80vh', minHeight: '500px' }}
-            title={`Funeral Program for ${program.deceasedName}`}
-          />
+          <iframe src={pdfUrl} className="w-full" style={{ height: '80vh', minHeight: '500px' }}
+            title={`Funeral Program for ${program.deceasedName}`} />
         </div>
       </div>
 
       <footer className="bg-[#0F2B5B] text-blue-200 py-6 px-4 text-center text-xs">
-        <p>
-          Shared via{' '}
+        <p>Shared via{' '}
           <Link href="/" className="text-[#C49A22] hover:text-[#B8860B] font-semibold">Mementa</Link>
           {' '}— Honor. Share. Remember.
         </p>

@@ -13,8 +13,8 @@ export default function QRCodeDisplay({ programId, size = 200 }: QRCodeDisplayPr
 
   const url =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/view/${programId}`
-      : `http://localhost:3000/view/${programId}`;
+      ? `${window.location.origin}/view/?id=${programId}`
+      : `http://localhost:3000/view/?id=${programId}`;
 
   function handleDownload() {
     const canvas = canvasRef.current?.querySelector('canvas');
