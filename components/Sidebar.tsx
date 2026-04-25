@@ -51,6 +51,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [userName, setUserName] = useState('');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -58,15 +59,19 @@ export default function Sidebar() {
     });
   }, []);
 
+  // Close drawer whenever the route changes
+  useEffect(() => { setOpen(false); }, [pathname]);
+
   async function handleLogout() {
     await logout();
     router.push('/');
   }
 
-  return (
-    <aside className="w-64 bg-[#0F2B5B] min-h-screen flex flex-col shadow-xl">
+  /* Shared inner content rendered in both the mobile drawer and desktop sidebar */
+  const inner = (
+    <>
       <div className="p-6 border-b border-blue-800">
-        <Link href="/">
+        <Link href="/" onClick={() => setOpen(false)}>
           <div className="relative w-36 h-10 rounded-lg overflow-hidden">
             <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain object-left" />
           </div>
@@ -74,13 +79,14 @@ export default function Sidebar() {
         {userName && <p className="text-blue-300 text-xs mt-2 truncate">{userName}</p>}
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.label}
               href={item.href}
+              onClick={() => setOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm font-medium ${
                 isActive ? 'bg-[#C49A22] text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white'
               }`}
@@ -103,6 +109,61 @@ export default function Sidebar() {
           Logout
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* ── Mobile: fixed top bar with hamburger ────────────────────── */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-[#0F2B5B] flex items-center px-4 shadow-lg">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          className="p-2 -ml-1 rounded-lg text-blue-200 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <Link href="/" className="ml-3">
+          <div className="relative w-28 h-8 rounded-md overflow-hidden">
+            <Image src="/mementa-logo.png" alt="Mementa" fill className="object-contain object-left" />
+          </div>
+        </Link>
+      </div>
+
+      {/* ── Mobile: backdrop ─────────────────────────────────────────── */}
+      {open && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile: slide-in drawer ──────────────────────────────────── */}
+      <aside
+        className={`
+          md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0F2B5B] flex flex-col shadow-2xl
+          transform transition-transform duration-300 ease-in-out
+          ${open ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Close menu"
+          className="absolute top-4 right-4 p-2 rounded-lg text-blue-300 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        {inner}
+      </aside>
+
+      {/* ── Desktop: static left column ─────────────────────────────── */}
+      <aside className="hidden md:flex w-64 bg-[#0F2B5B] min-h-screen flex-col shadow-xl flex-shrink-0">
+        {inner}
+      </aside>
+    </>
   );
 }

@@ -94,7 +94,7 @@ export default function SubscribePage() {
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
           <div className="max-w-2xl mx-auto">
             <div className="mb-8">
               <Link href="/dashboard" className="text-sm text-gray-400 hover:text-[#0F2B5B] flex items-center gap-1 mb-4 transition-colors">

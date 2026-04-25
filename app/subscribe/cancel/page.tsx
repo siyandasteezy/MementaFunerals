@@ -9,7 +9,7 @@ export default function PaymentCancelPage() {
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="flex-1 flex items-center justify-center p-8">
+        <main className="flex-1 flex items-center justify-center p-4 pt-16 sm:p-8 md:pt-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-md w-full text-center">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
               <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

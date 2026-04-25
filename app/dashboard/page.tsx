@@ -39,12 +39,12 @@ export default function DashboardPage() {
     if (status === 'trial') {
       const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86400000));
       return (
-        <div className="mb-6 flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-amber-800 text-sm">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-amber-800 text-sm">
           <span>
             <span className="mr-1">🕐</span>
-            <strong>Free Trial:</strong> {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining — Upgrade for R100/month
+            <strong>Free Trial:</strong> {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining — Upgrade for R250/month
           </span>
-          <Link href="/subscribe" className="ml-4 flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+          <Link href="/subscribe" className="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center">
             Upgrade Now
           </Link>
         </div>
@@ -53,12 +53,12 @@ export default function DashboardPage() {
 
     if (status === 'expired' || status === 'cancelled') {
       return (
-        <div className="mb-6 flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-5 py-3 text-red-800 text-sm">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-red-50 border border-red-200 rounded-xl px-5 py-3 text-red-800 text-sm">
           <span>
             <span className="mr-1">⚠️</span>
             <strong>Trial Expired</strong> — Upgrade to continue creating programs
           </span>
-          <Link href="/subscribe" className="ml-4 flex-shrink-0 bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+          <Link href="/subscribe" className="flex-shrink-0 bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center">
             Subscribe Now
           </Link>
         </div>
@@ -83,10 +83,10 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-[#0F2B5B]">Welcome back, {firstName || 'there'} 👋</h1>
-            <p className="text-gray-500 mt-1">Manage your funeral programs and share them with loved ones.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#0F2B5B]">Welcome back, {firstName || 'there'} 👋</h1>
+            <p className="text-gray-500 mt-1 text-sm">Manage your funeral programs and share them with loved ones.</p>
           </div>
 
           <SubscriptionBanner />
@@ -103,8 +103,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-[#0F2B5B]">My Programs</h2>
-            <Link href="/create" className="flex items-center gap-2 bg-[#C49A22] hover:bg-[#B8860B] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <h2 className="text-lg sm:text-xl font-bold text-[#0F2B5B]">My Programs</h2>
+            <Link href="/create" className="flex items-center gap-1.5 bg-[#C49A22] hover:bg-[#B8860B] text-white px-3 py-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               New Program
             </Link>

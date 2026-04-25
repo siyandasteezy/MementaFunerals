@@ -53,7 +53,7 @@ export default function ProgramDetailPage() {
       <ProtectedRoute>
         <div className="flex min-h-screen bg-gray-50">
           <Sidebar />
-          <main className="flex-1 flex items-center justify-center">
+          <main className="flex-1 flex items-center justify-center pt-14 md:pt-0">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0F2B5B]" />
           </main>
         </div>
@@ -71,9 +71,9 @@ export default function ProgramDetailPage() {
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+            <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 sm:mb-6">
               <Link href="/dashboard" className="hover:text-[#0F2B5B] transition-colors">Dashboard</Link>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -81,11 +81,11 @@ export default function ProgramDetailPage() {
               <span className="text-gray-700">{program.deceasedName}</span>
             </div>
 
-            <div className="bg-gradient-to-br from-[#0F2B5B] to-[#1a3d7c] rounded-2xl p-8 mb-6 text-white">
+            <div className="bg-gradient-to-br from-[#0F2B5B] to-[#1a3d7c] rounded-2xl p-4 sm:p-6 md:p-8 mb-6 text-white">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <p className="text-blue-200 text-sm mb-1 uppercase tracking-wider font-medium">Funeral Program</p>
-                  <h1 className="text-3xl font-extrabold">{program.deceasedName}</h1>
+                  <p className="text-blue-200 text-xs sm:text-sm mb-1 uppercase tracking-wider font-medium">Funeral Program</p>
+                  <h1 className="text-xl sm:text-3xl font-extrabold">{program.deceasedName}</h1>
                   <p className="text-blue-300 text-lg mt-1">{program.birthYear} – {program.deathYear}</p>
                   {eventDate && (
                     <p className="text-blue-200 text-sm mt-2 flex items-center gap-1">

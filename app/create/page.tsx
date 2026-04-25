@@ -78,11 +78,11 @@ export default function CreatePage() {
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
           <div className="max-w-2xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#0F2B5B]">Create New Program</h1>
-              <p className="text-gray-500 mt-1">Upload a funeral program PDF and generate a shareable QR code.</p>
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#0F2B5B]">Create New Program</h1>
+              <p className="text-gray-500 mt-1 text-sm">Upload a funeral program PDF and generate a shareable QR code.</p>
             </div>
 
             {/* Step indicator */}
@@ -111,7 +111,7 @@ export default function CreatePage() {
 
             {/* Step 1 */}
             {step === 1 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
                 <h2 className="text-xl font-bold text-[#0F2B5B] mb-2">Upload PDF Program</h2>
                 <p className="text-gray-500 text-sm mb-6">Upload the funeral program PDF. Supported: PDF files up to 50MB.</p>
                 <div
@@ -119,7 +119,7 @@ export default function CreatePage() {
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${isDragging ? 'border-[#C49A22] bg-amber-50' : 'border-gray-200 hover:border-[#0F2B5B] hover:bg-blue-50'}`}
+                  className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all ${isDragging ? 'border-[#C49A22] bg-amber-50' : 'border-gray-200 hover:border-[#0F2B5B] hover:bg-blue-50'}`}
                 >
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className={`w-8 h-8 ${isDragging ? 'text-[#C49A22]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +137,7 @@ export default function CreatePage() {
 
             {/* Step 2 */}
             {step === 2 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                     <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -191,7 +191,7 @@ export default function CreatePage() {
 
             {/* Step 3 */}
             {step === 3 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
                 <h2 className="text-xl font-bold text-[#0F2B5B] mb-6">Preview & Save</h2>
                 <div className="bg-gray-50 rounded-xl p-6 mb-6 space-y-3">
                   <div className="flex justify-between text-sm"><span className="text-gray-500">Full Name</span><span className="font-semibold text-gray-800">{deceasedName}</span></div>

@@ -90,6 +90,7 @@ function displayName(profile: UserProfile | undefined) {
 
 export default function AdminPage() {
   const [tab, setTab]                   = useState<Tab>('overview');
+  const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [subscriptions, setSubscriptions] = useState<SubRow[]>([]);
   const [programs, setPrograms]         = useState<ProgramRow[]>([]);
   const [profiles, setProfiles]         = useState<UserProfile[]>([]);
@@ -191,47 +192,88 @@ export default function AdminPage() {
   const recentPrograms = programs.slice(0, 10);
 
   // ── Render ──────────────────────────────────────────────────────────────────
+  const adminNav = (
+    <>
+      <div className="p-6 border-b border-white/10">
+        <p className="text-white font-bold text-xl">Mementa</p>
+        <span className="inline-block mt-1 bg-[#C49A22] text-white text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+          Admin Panel
+        </span>
+      </div>
+      <nav className="flex-1 p-4 space-y-1">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => { setTab(item.key); setAdminDrawerOpen(false); }}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              tab === item.key
+                ? 'bg-white/10 text-white'
+                : 'text-blue-200 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+      <div className="p-4 border-t border-white/10">
+        <Link
+          href="/dashboard"
+          onClick={() => setAdminDrawerOpen(false)}
+          className="flex items-center gap-2 text-blue-300 hover:text-white text-sm transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to App
+        </Link>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex min-h-screen bg-gray-50">
 
-      {/* Admin Sidebar */}
-      <aside className="w-64 bg-[#0F2B5B] flex flex-col min-h-screen flex-shrink-0">
-        <div className="p-6 border-b border-white/10">
-          <p className="text-white font-bold text-xl">Mementa</p>
-          <span className="inline-block mt-1 bg-[#C49A22] text-white text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-            Admin Panel
-          </span>
-        </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setTab(item.key)}
-              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                tab === item.key
-                  ? 'bg-white/10 text-white'
-                  : 'text-blue-200 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="p-4 border-t border-white/10">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-blue-300 hover:text-white text-sm transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to App
-          </Link>
-        </div>
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-[#0F2B5B] flex items-center px-4 shadow-lg">
+        <button
+          onClick={() => setAdminDrawerOpen(true)}
+          className="p-2 -ml-1 rounded-lg text-blue-200 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <span className="ml-3 text-white font-bold">Admin Panel</span>
+      </div>
+
+      {/* Mobile backdrop */}
+      {adminDrawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setAdminDrawerOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside className={`md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0F2B5B] flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${adminDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <button
+          onClick={() => setAdminDrawerOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-lg text-blue-300 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        {adminNav}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-64 bg-[#0F2B5B] flex-col min-h-screen flex-shrink-0">
+        {adminNav}
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0F2B5B]" />
