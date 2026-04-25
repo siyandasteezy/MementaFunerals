@@ -1,5 +1,6 @@
 -- ─────────────────────────────────────────────────────────────────
 -- Admin helper functions — run in: Supabase Dashboard → SQL Editor
+-- Safe to re-run: all use CREATE OR REPLACE
 -- ─────────────────────────────────────────────────────────────────
 
 -- 1. List all users (name + email) — callable only by admins
@@ -31,21 +32,43 @@ BEGIN
 END;
 $$;
 
--- 2. Add a new admin by user_id — callable only by existing admins
-CREATE OR REPLACE FUNCTION add_admin_user(target_user_id UUID)
-RETURNS VOID
+-- 2. List all admin_users rows — bypasses RLS so all admins are visible
+--    (direct SELECT on admin_users is restricted to own row by RLS)
+CREATE OR REPLACE FUNCTION get_admin_list()
+RETURNS TABLE (
+  user_id    UUID,
+  created_at TIMESTAMPTZ
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  -- Only existing admins may promote others
   IF NOT EXISTS (
     SELECT 1 FROM admin_users WHERE admin_users.user_id = auth.uid()
   ) THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
 
-  -- Idempotent insert — silently succeeds if already an admin
+  RETURN QUERY
+  SELECT a.user_id, a.created_at
+  FROM admin_users a
+  ORDER BY a.created_at DESC;
+END;
+$$;
+
+-- 3. Add a new admin by user_id — callable only by existing admins
+CREATE OR REPLACE FUNCTION add_admin_user(target_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM admin_users WHERE admin_users.user_id = auth.uid()
+  ) THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+
   INSERT INTO admin_users (user_id)
   VALUES (target_user_id)
   ON CONFLICT (user_id) DO NOTHING;

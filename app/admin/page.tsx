@@ -109,8 +109,8 @@ export default function AdminPage() {
       const [{ data: subs }, { data: progs }, { data: admins }, { data: prof }] = await Promise.all([
         supabase.from('subscriptions').select('*').order('created_at', { ascending: false }),
         supabase.from('programs').select('id, user_id, deceased_name, created_at').order('created_at', { ascending: false }),
-        supabase.from('admin_users').select('user_id, created_at').order('created_at', { ascending: false }),
-        supabase.rpc('get_admin_users_list'),
+        supabase.rpc('get_admin_list'),          // SECURITY DEFINER — bypasses RLS
+        supabase.rpc('get_admin_users_list'),    // SECURITY DEFINER — reads auth.users
       ]);
       setSubscriptions((subs as SubRow[]) ?? []);
       setPrograms((progs as ProgramRow[]) ?? []);
