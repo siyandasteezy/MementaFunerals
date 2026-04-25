@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export interface Subscription {
   id: string;
   userId: string;
-  status: 'trial' | 'active' | 'expired' | 'cancelled';
+  status: 'trial' | 'active' | 'expired' | 'cancelled' | 'pending_payment';
   trialEndsAt: string;
   currentPeriodEnd: string | null;
   createdAt: string;
