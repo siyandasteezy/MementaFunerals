@@ -171,7 +171,7 @@ export default function AdminPage() {
       return;
     }
 
-    const { error } = await supabase.from('admin_users').insert({ user_id: match.user_id });
+    const { error } = await supabase.rpc('add_admin_user', { target_user_id: match.user_id });
     if (error) {
       setAddError(error.message);
     } else {
