@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import { supabase } from '@/lib/supabase';
-import { ABOUT_US, COMPANY_PROFILE } from '@/lib/legal';
+import { ABOUT_US, MISSION, VISION, VALUES, COMPANY_PROFILE } from '@/lib/legal';
 
 const SA_PROVINCES = [
   'Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal',
@@ -63,6 +63,47 @@ export default function ContactPage() {
         </div>
       </section>
 
+      {/* ── Mission / Vision / Values ─────────────────────────────────── */}
+      <section className="max-w-4xl mx-auto px-6 py-12 border-b border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          {/* Mission */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="w-10 h-10 bg-[#0F2B5B] rounded-xl flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-[#0F2B5B] text-lg mb-2">Our Mission</h3>
+            <p className="text-gray-600 text-sm leading-relaxed">{MISSION}</p>
+          </div>
+          {/* Vision */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="w-10 h-10 bg-[#C49A22] rounded-xl flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-[#0F2B5B] text-lg mb-2">Our Vision</h3>
+            <p className="text-gray-600 text-sm leading-relaxed">{VISION}</p>
+          </div>
+        </div>
+
+        {/* Values */}
+        <h3 className="font-bold text-[#0F2B5B] text-lg mb-4">Our Values</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {VALUES.map((v) => (
+            <div key={v.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#C49A22] flex-shrink-0 mt-2" />
+              <div>
+                <p className="font-semibold text-[#0F2B5B] text-sm">{v.label}</p>
+                <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{v.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Company profile cards ─────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-6 py-12">
         <h2 className="text-2xl font-bold text-[#0F2B5B] mb-6">Company Profile</h2>
@@ -77,7 +118,8 @@ export default function ContactPage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Company</p>
-              <p className="font-semibold text-gray-800 text-sm">{COMPANY_PROFILE.name}</p>
+              <p className="font-semibold text-gray-800 text-sm">{COMPANY_PROFILE.tradingAs}</p>
+              <p className="text-gray-500 text-xs mt-0.5">{COMPANY_PROFILE.name}</p>
               {COMPANY_PROFILE.registration && (
                 <p className="text-gray-400 text-xs mt-0.5">Reg: {COMPANY_PROFILE.registration}</p>
               )}
@@ -126,7 +168,7 @@ export default function ContactPage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Location</p>
-              <p className="font-semibold text-gray-800 text-sm">{COMPANY_PROFILE.address}</p>
+              <p className="font-semibold text-gray-800 text-sm leading-snug">{COMPANY_PROFILE.address}</p>
             </div>
           </div>
 
