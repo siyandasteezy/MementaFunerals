@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { supabase } from '@/lib/supabase';
 import { ABOUT_US, MISSION, VISION, VALUES, COMPANY_PROFILE } from '@/lib/legal';
 
@@ -294,6 +295,8 @@ export default function ContactPage() {
           <Link href="/" className="text-gray-400 hover:text-[#0F2B5B] text-sm transition-colors">← Back to Home</Link>
         </p>
       </section>
+
+      <Footer />
     </div>
   );
 }

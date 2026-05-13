@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const featureRows = [
   {
@@ -364,49 +365,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="bg-[#0a1f44] text-blue-200 py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
-              <p className="text-white font-bold text-2xl mb-2">Mementa</p>
-              <p className="text-blue-300 text-sm leading-relaxed">
-                Honoring lives with beautiful digital programs and instant QR sharing.
-              </p>
-            </div>
-            {/* Product */}
-            <div>
-              <p className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Product</p>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><Link href="/login" className="hover:text-white transition-colors">Login</Link></li>
-              </ul>
-            </div>
-            {/* Support */}
-            <div>
-              <p className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Support</p>
-              <ul className="space-y-2 text-sm">
-                <li><a href="mailto:support@mementa.co.za" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-            {/* Legal */}
-            <div>
-              <p className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Legal</p>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-8 text-center text-sm text-blue-400">
-            &copy; 2025 Mementa. All rights reserved. Made with care in South Africa.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
