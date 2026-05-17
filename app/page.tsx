@@ -76,7 +76,7 @@ const howItWorksSteps = [
 const faqItems = [
   {
     q: 'How does the free trial work?',
-    a: 'Your first 30 days are completely free. No credit card required. After that, it\'s R250 per month.',
+    a: 'Your first 30 days are completely free. No credit card required. After that, plans start from R250/month, with savings on 3, 6, and 12-month plans.',
   },
   {
     q: 'Do attendees need to download an app?',
@@ -243,73 +243,80 @@ export default function LandingPage() {
 
       {/* ── Pricing ── */}
       <section id="pricing" className="py-24 px-6 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-[#0F2B5B] mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-gray-500 text-lg">Start free. Upgrade when you need more.</p>
+            <p className="text-gray-500 text-lg">Start free. Save more with longer plans.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-            {/* Free Trial */}
-            <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 flex flex-col">
-              <div className="mb-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Free Trial</span>
-              </div>
-              <h3 className="text-2xl font-bold text-[#0F2B5B] mb-1">30 Days Free</h3>
-              <div className="my-4">
-                <span className="text-5xl font-extrabold text-[#0F2B5B]">R0</span>
-                <span className="text-gray-400 ml-1 text-sm">/first month</span>
-              </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {['Up to 10 programs', 'QR codes for all programs', 'View tracking', 'Email support'].map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-gray-600">
-                    <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="block w-full text-center border-2 border-[#0F2B5B] text-[#0F2B5B] hover:bg-[#0F2B5B] hover:text-white py-3 rounded-xl font-semibold transition-all"
-              >
-                Start Free Trial
-              </Link>
-            </div>
 
-            {/* Monthly Plan */}
-            <div className="bg-[#0F2B5B] rounded-2xl p-8 flex flex-col relative overflow-hidden shadow-xl">
-              <div className="absolute top-4 right-4 bg-[#C49A22] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Most Popular
-              </div>
-              <div className="mb-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Monthly Plan</span>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-1">R250 / month</h3>
-              <div className="my-4">
-                <span className="text-5xl font-extrabold text-white">R250</span>
-                <span className="text-blue-300 ml-1 text-sm">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {['Unlimited programs', 'QR codes for all programs', 'Advanced analytics', 'Priority support', 'Custom branding'].map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-blue-100">
-                    <svg className="w-5 h-5 text-[#C49A22] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="block w-full text-center bg-[#C49A22] hover:bg-[#B8860B] text-white py-3 rounded-xl font-semibold transition-all shadow-md"
+          {/* Paid plans */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Monthly',   months: 1,  amount: 250,  perMonth: 250, saving: null,  badge: null },
+              { label: '3 Months',  months: 3,  amount: 700,  perMonth: 233, saving: 50,    badge: null },
+              { label: '6 Months',  months: 6,  amount: 1300, perMonth: 217, saving: 200,   badge: 'Best Value' },
+              { label: '12 Months', months: 12, amount: 2400, perMonth: 200, saving: 600,   badge: null },
+            ].map((plan) => (
+              <div
+                key={plan.label}
+                className={`relative rounded-2xl p-5 flex flex-col ${
+                  plan.badge
+                    ? 'bg-[#0F2B5B] text-white shadow-xl ring-2 ring-[#C49A22]'
+                    : 'bg-white border-2 border-gray-200 text-gray-800'
+                }`}
               >
-                Get Started
-              </Link>
-            </div>
+                {plan.badge && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#C49A22] text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
+                    {plan.badge}
+                  </span>
+                )}
+                <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${plan.badge ? 'text-blue-300' : 'text-gray-400'}`}>
+                  {plan.label}
+                </p>
+                <p className="text-2xl font-extrabold">R{plan.amount.toLocaleString()}</p>
+                <p className={`text-xs mt-0.5 mb-3 ${plan.badge ? 'text-blue-300' : 'text-gray-400'}`}>
+                  ≈ R{plan.perMonth}/mo
+                </p>
+                {plan.saving ? (
+                  <span className={`self-start text-[11px] font-semibold px-2.5 py-0.5 rounded-full mb-4 ${
+                    plan.badge ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'
+                  }`}>
+                    Save R{plan.saving}
+                  </span>
+                ) : (
+                  <div className="mb-4" />
+                )}
+                <Link
+                  href="/register"
+                  className={`mt-auto block w-full text-center py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                    plan.badge
+                      ? 'bg-[#C49A22] hover:bg-[#B8860B] text-white'
+                      : 'border-2 border-[#0F2B5B] text-[#0F2B5B] hover:bg-[#0F2B5B] hover:text-white'
+                  }`}
+                >
+                  Get Started
+                </Link>
+              </div>
+            ))}
           </div>
-          <p className="text-center text-gray-400 text-sm mt-6">
-            Start with a free 30-day trial. No credit card required. Cancel anytime.
+
+          {/* Free trial strip */}
+          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Free Trial</span>
+              <h3 className="text-xl font-bold text-[#0F2B5B] mt-0.5">30 Days Free — No credit card required</h3>
+              <p className="text-gray-400 text-sm mt-1">Full access during your trial. Upgrade anytime.</p>
+            </div>
+            <Link
+              href="/register"
+              className="flex-shrink-0 block text-center border-2 border-[#0F2B5B] text-[#0F2B5B] hover:bg-[#0F2B5B] hover:text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+            >
+              Start Free Trial
+            </Link>
+          </div>
+
+          <p className="text-center text-gray-400 text-xs mt-4">
+            All plans include unlimited programmes, QR codes, advanced analytics, and priority support.
           </p>
         </div>
       </section>

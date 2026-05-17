@@ -9,23 +9,33 @@ async function sha512(input: string): Promise<string> {
     .join('');
 }
 
+/** Parse months from TxRef formatted as MEM-{ts}-{uid8}-{n}M */
+function parseMonthsFromTxRef(txRef: string): number {
+  const match = txRef.match(/-(\d+)M$/);
+  if (match) {
+    const n = parseInt(match[1], 10);
+    if ([1, 3, 6, 12].includes(n)) return n;
+  }
+  return 1; // fallback to monthly
+}
+
 serve(async (req) => {
   // Ozow sends POST with application/x-www-form-urlencoded body
   const body = await req.text();
-  const p = new URLSearchParams(body);
+  const p    = new URLSearchParams(body);
 
-  const status     = p.get('Status')               ?? '';
-  const txId       = p.get('TransactionId')         ?? '';
-  const txRef      = p.get('TransactionReference')  ?? '';
-  const amount     = p.get('Amount')                ?? '';
-  const hash       = p.get('Hash')                  ?? '';
+  const status = p.get('Status')              ?? '';
+  const txId   = p.get('TransactionId')        ?? '';
+  const txRef  = p.get('TransactionReference') ?? '';
+  const amount = p.get('Amount')               ?? '';
+  const hash   = p.get('Hash')                 ?? '';
 
   const SITE_CODE   = Deno.env.get('OZOW_SITE_CODE')!;
   const PRIVATE_KEY = Deno.env.get('OZOW_PRIVATE_KEY')!;
-  const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')!;
-  const SERVICE_KEY     = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+  const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  // Verify Ozow's signature: SHA512(lower(SiteCode+TransactionId+TransactionReference+Amount+Status+PrivateKey))
+  // Verify Ozow signature: SHA512(lower(SiteCode+TransactionId+TransactionReference+Amount+Status+PrivateKey))
   const expected = await sha512(
     (SITE_CODE + txId + txRef + amount + status + PRIVATE_KEY).toLowerCase()
   );
@@ -38,8 +48,10 @@ serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   if (status === 'Complete') {
+    // Determine subscription duration from the TxRef
+    const months = parseMonthsFromTxRef(txRef);
     const periodEnd = new Date();
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
+    periodEnd.setMonth(periodEnd.getMonth() + months);
 
     const { error } = await supabase
       .from('subscriptions')
@@ -55,9 +67,9 @@ serve(async (req) => {
       return new Response('DB error', { status: 500 });
     }
 
-    console.log(`✅ Subscription activated — ref: ${txRef}`);
+    console.log(`✅ Subscription activated — ref: ${txRef} | ${months} month(s) | expires: ${periodEnd.toISOString()}`);
+
   } else if (status === 'Cancelled' || status === 'Error') {
-    // Roll back to previous state so user can try again
     await supabase
       .from('subscriptions')
       .update({ status: 'expired', ozow_transaction_ref: null })
@@ -66,6 +78,6 @@ serve(async (req) => {
     console.log(`❌ Payment ${status} — ref: ${txRef}`);
   }
 
-  // Ozow expects a 200 OK
+  // Ozow expects 200 OK
   return new Response('OK', { status: 200 });
 });
