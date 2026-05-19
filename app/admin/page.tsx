@@ -28,6 +28,7 @@ interface UserProfile {
   user_id: string;
   email: string;
   full_name: string;
+  phone: string | null;
   created_at: string;
 }
 
@@ -42,6 +43,7 @@ interface UserSummary {
   userId: string;
   email: string;
   fullName: string;
+  phone: string | null;
   status: string;
   trialEndsAt: string;
   periodEnd: string | null;
@@ -211,6 +213,7 @@ export default function AdminPage() {
       userId:       sub.user_id,
       email:        prof?.email     ?? '',
       fullName:     prof?.full_name ?? '',
+      phone:        prof?.phone     ?? null,
       status:       sub.status,
       trialEndsAt:  sub.trial_ends_at,
       periodEnd:    sub.current_period_end,
@@ -430,6 +433,7 @@ export default function AdminPage() {
                           <tr>
                             <th className="px-6 py-3 text-left">Name</th>
                             <th className="px-6 py-3 text-left">Email</th>
+                            <th className="px-6 py-3 text-left">Phone</th>
                             <th className="px-6 py-3 text-left">Status</th>
                             <th className="px-6 py-3 text-left">Trial / Period End</th>
                             <th className="px-6 py-3 text-left">Programs</th>
@@ -447,6 +451,15 @@ export default function AdminPage() {
                                 )}
                               </td>
                               <td className="px-6 py-3 text-gray-500 text-xs">{u.email || '—'}</td>
+                              <td className="px-6 py-3 text-gray-500 text-xs">
+                                {u.phone ? (
+                                  <a href={`tel:${u.phone}`} className="hover:text-[#0F2B5B] transition-colors">
+                                    {u.phone}
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-300">—</span>
+                                )}
+                              </td>
                               <td className="px-6 py-3"><StatusBadge status={u.status} /></td>
                               <td className="px-6 py-3 text-gray-500">
                                 {u.status === 'trial' ? fmtDate(u.trialEndsAt) : fmtDate(u.periodEnd)}
@@ -466,7 +479,7 @@ export default function AdminPage() {
                             </tr>
                           ))}
                           {userSummaries.length === 0 && (
-                            <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No users yet.</td></tr>
+                            <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">No users yet.</td></tr>
                           )}
                         </tbody>
                       </table>

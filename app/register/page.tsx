@@ -22,6 +22,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [name, setName]                     = useState('');
   const [email, setEmail]                   = useState('');
+  const [phone, setPhone]                   = useState('');
   const [password, setPassword]             = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [accepted, setAccepted]             = useState(false);
@@ -43,7 +44,7 @@ export default function RegisterPage() {
     if (!accepted)                    { setError('Please accept the Terms & Conditions to continue.'); return; }
     setLoading(true);
     try {
-      const data = await registerUser(name, email, password);
+      const data = await registerUser(name, email, password, phone.trim() || undefined);
       if (data.user) await createSubscription(data.user.id);
       router.push('/dashboard');
     } catch (err: unknown) {
@@ -102,6 +103,18 @@ export default function RegisterPage() {
                   type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2B5B] focus:border-transparent transition"
                   placeholder="you@example.com"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2B5B] focus:border-transparent transition"
+                  placeholder="+27 82 123 4567"
                 />
               </div>
 

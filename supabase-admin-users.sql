@@ -3,12 +3,13 @@
 -- Safe to re-run: all use CREATE OR REPLACE
 -- ─────────────────────────────────────────────────────────────────
 
--- 1. List all users (name + email) — callable only by admins
+-- 1. List all users (name + email + phone) — callable only by admins
 CREATE OR REPLACE FUNCTION get_admin_users_list()
 RETURNS TABLE (
   user_id    UUID,
   email      TEXT,
   full_name  TEXT,
+  phone      TEXT,
   created_at TIMESTAMPTZ
 )
 LANGUAGE plpgsql
@@ -26,6 +27,10 @@ BEGIN
     u.id                                          AS user_id,
     u.email::TEXT                                 AS email,
     (u.raw_user_meta_data->>'full_name')::TEXT    AS full_name,
+    COALESCE(
+      (u.raw_user_meta_data->>'phone')::TEXT,
+      u.phone::TEXT
+    )                                             AS phone,
     u.created_at
   FROM auth.users u
   ORDER BY u.created_at DESC;
