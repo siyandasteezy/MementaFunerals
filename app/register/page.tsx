@@ -20,12 +20,13 @@ const MODAL_META: Record<Exclude<ModalType, null>, { title: string; content: str
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [name, setName]                     = useState('');
-  const [email, setEmail]                   = useState('');
-  const [phone, setPhone]                   = useState('');
-  const [password, setPassword]             = useState('');
+  const [name, setName]                       = useState('');
+  const [email, setEmail]                     = useState('');
+  const [phone, setPhone]                     = useState('');
+  const [businessName, setBusinessName]       = useState('');
+  const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [accepted, setAccepted]             = useState(false);
+  const [accepted, setAccepted]               = useState(false);
   const [modal, setModal]                   = useState<ModalType>(null);
   const [error, setError]                   = useState('');
   const [loading, setLoading]               = useState(false);
@@ -44,8 +45,25 @@ export default function RegisterPage() {
     if (!accepted)                    { setError('Please accept the Terms & Conditions to continue.'); return; }
     setLoading(true);
     try {
-      const data = await registerUser(name, email, password, phone.trim() || undefined);
-      if (data.user) await createSubscription(data.user.id);
+      const data = await registerUser(
+        name,
+        email,
+        password,
+        phone.trim()         || undefined,
+        businessName.trim()  || undefined,
+      );
+      if (data.user) {
+        await createSubscription(data.user.id);
+        // Fire-and-forget admin notification — don't block registration if it fails
+        supabase.functions.invoke('notify-new-user', {
+          body: {
+            name:         name.trim(),
+            email,
+            phone:        phone.trim()        || null,
+            businessName: businessName.trim() || null,
+          },
+        }).catch(() => {/* silent */});
+      }
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
@@ -115,6 +133,18 @@ export default function RegisterPage() {
                   type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2B5B] focus:border-transparent transition"
                   placeholder="+27 82 123 4567"
+                />
+              </div>
+
+              {/* Business Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Business / Organisation Name <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2B5B] focus:border-transparent transition"
+                  placeholder="Your funeral home or company name"
                 />
               </div>
 

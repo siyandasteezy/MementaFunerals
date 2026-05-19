@@ -29,6 +29,7 @@ interface UserProfile {
   email: string;
   full_name: string;
   phone: string | null;
+  business_name: string | null;
   created_at: string;
 }
 
@@ -44,6 +45,7 @@ interface UserSummary {
   email: string;
   fullName: string;
   phone: string | null;
+  businessName: string | null;
   status: string;
   trialEndsAt: string;
   periodEnd: string | null;
@@ -213,7 +215,8 @@ export default function AdminPage() {
       userId:       sub.user_id,
       email:        prof?.email     ?? '',
       fullName:     prof?.full_name ?? '',
-      phone:        prof?.phone     ?? null,
+      phone:        prof?.phone         ?? null,
+      businessName: prof?.business_name ?? null,
       status:       sub.status,
       trialEndsAt:  sub.trial_ends_at,
       periodEnd:    sub.current_period_end,
@@ -432,6 +435,7 @@ export default function AdminPage() {
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                           <tr>
                             <th className="px-6 py-3 text-left">Name</th>
+                            <th className="px-6 py-3 text-left">Business</th>
                             <th className="px-6 py-3 text-left">Email</th>
                             <th className="px-6 py-3 text-left">Phone</th>
                             <th className="px-6 py-3 text-left">Status</th>
@@ -449,6 +453,9 @@ export default function AdminPage() {
                                 {adminSet.has(u.userId) && (
                                   <span className="ml-2 text-[10px] bg-[#C49A22] text-white px-1.5 py-0.5 rounded-full font-bold uppercase">Admin</span>
                                 )}
+                              </td>
+                              <td className="px-6 py-3 text-gray-600 text-xs">
+                                {u.businessName || <span className="text-gray-300">—</span>}
                               </td>
                               <td className="px-6 py-3 text-gray-500 text-xs">{u.email || '—'}</td>
                               <td className="px-6 py-3 text-gray-500 text-xs">
@@ -479,7 +486,7 @@ export default function AdminPage() {
                             </tr>
                           ))}
                           {userSummaries.length === 0 && (
-                            <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">No users yet.</td></tr>
+                            <tr><td colSpan={9} className="px-6 py-8 text-center text-gray-400">No users yet.</td></tr>
                           )}
                         </tbody>
                       </table>
