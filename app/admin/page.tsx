@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import QRCodeDisplay from '@/components/QRCodeDisplay';
 
 // ─── DB row shapes ───────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ interface ProgramRow {
   user_id: string;
   deceased_name: string;
   created_at: string;
+  expires_at: string | null;
 }
 
 interface UserProfile {
@@ -74,6 +76,24 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/** A program is live if it has no expiry or the expiry is in the future */
+function isLive(p: ProgramRow) {
+  if (!p.expires_at) return true;
+  return new Date(p.expires_at) > new Date();
+}
+
+function LiveBadge({ program }: { program: ProgramRow }) {
+  const live = isLive(program);
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+      live ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+    }`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${live ? 'bg-green-500' : 'bg-gray-400'}`} />
+      {live ? 'Live' : 'Archived'}
+    </span>
+  );
+}
+
 function shortId(id: string) { return id.slice(0, 8) + '…'; }
 
 function fmtDate(d: string | null) {
@@ -81,37 +101,95 @@ function fmtDate(d: string | null) {
   return new Date(d).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function fmtDateTime(d: string | null) {
+  if (!d) return '—';
+  return new Date(d).toLocaleString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 function displayName(profile: UserProfile | undefined) {
   if (!profile) return '—';
   return profile.full_name || profile.email || shortId(profile.user_id);
 }
 
+// ─── QR Modal ────────────────────────────────────────────────────────────────
+
+function QRModal({ program, onClose }: { program: ProgramRow; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="font-bold text-[#0F2B5B] text-base">{program.deceased_name}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">QR Code — scan to view public programme</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* QR code */}
+        <div className="px-6 py-6">
+          <QRCodeDisplay programId={program.id} size={220} />
+        </div>
+
+        {/* Expiry info */}
+        <div className="px-6 pb-5">
+          <div className={`flex items-center gap-2 text-xs rounded-lg px-3 py-2 ${
+            isLive(program) ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'
+          }`}>
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isLive(program) ? 'bg-green-500' : 'bg-gray-400'}`} />
+            {isLive(program)
+              ? program.expires_at
+                ? `Live · Expires ${fmtDateTime(program.expires_at)}`
+                : 'Live · No expiry set'
+              : `Archived · Expired ${fmtDateTime(program.expires_at)}`
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const [tab, setTab]                   = useState<Tab>('overview');
+  const [tab, setTab]                         = useState<Tab>('overview');
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
-  const [subscriptions, setSubscriptions] = useState<SubRow[]>([]);
-  const [programs, setPrograms]         = useState<ProgramRow[]>([]);
-  const [profiles, setProfiles]         = useState<UserProfile[]>([]);
-  const [adminRows, setAdminRows]       = useState<AdminRow[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [suspending, setSuspending]     = useState<string | null>(null);
+  const [subscriptions, setSubscriptions]     = useState<SubRow[]>([]);
+  const [programs, setPrograms]               = useState<ProgramRow[]>([]);
+  const [profiles, setProfiles]               = useState<UserProfile[]>([]);
+  const [adminRows, setAdminRows]             = useState<AdminRow[]>([]);
+  const [loading, setLoading]                 = useState(true);
+  const [suspending, setSuspending]           = useState<string | null>(null);
+  const [qrProgram, setQrProgram]             = useState<ProgramRow | null>(null);
 
   // Add-admin form
-  const [addEmail, setAddEmail]         = useState('');
-  const [addError, setAddError]         = useState('');
-  const [addSuccess, setAddSuccess]     = useState('');
-  const [addLoading, setAddLoading]     = useState(false);
+  const [addEmail, setAddEmail]     = useState('');
+  const [addError, setAddError]     = useState('');
+  const [addSuccess, setAddSuccess] = useState('');
+  const [addLoading, setAddLoading] = useState(false);
 
   // ── Fetch everything ────────────────────────────────────────────────────────
   useEffect(() => {
     async function load() {
       const [{ data: subs }, { data: progs }, { data: admins }, { data: prof }] = await Promise.all([
         supabase.from('subscriptions').select('*').order('created_at', { ascending: false }),
-        supabase.from('programs').select('id, user_id, deceased_name, created_at').order('created_at', { ascending: false }),
-        supabase.rpc('get_admin_list'),          // SECURITY DEFINER — bypasses RLS
-        supabase.rpc('get_admin_users_list'),    // SECURITY DEFINER — reads auth.users
+        supabase.from('programs').select('id, user_id, deceased_name, created_at, expires_at').order('created_at', { ascending: false }),
+        supabase.rpc('get_admin_list'),
+        supabase.rpc('get_admin_users_list'),
       ]);
       setSubscriptions((subs as SubRow[]) ?? []);
       setPrograms((progs as ProgramRow[]) ?? []);
@@ -131,8 +209,8 @@ export default function AdminPage() {
     const prof = profileMap.get(sub.user_id);
     return {
       userId:       sub.user_id,
-      email:        prof?.email        ?? '',
-      fullName:     prof?.full_name    ?? '',
+      email:        prof?.email     ?? '',
+      fullName:     prof?.full_name ?? '',
       status:       sub.status,
       trialEndsAt:  sub.trial_ends_at,
       periodEnd:    sub.current_period_end,
@@ -151,33 +229,18 @@ export default function AdminPage() {
 
   async function handleAddAdmin(e: React.FormEvent) {
     e.preventDefault();
-    setAddError('');
-    setAddSuccess('');
+    setAddError(''); setAddSuccess('');
     const email = addEmail.trim().toLowerCase();
     if (!email) return;
-
     setAddLoading(true);
-
-    // Find user by email in the profiles list (fetched via SECURITY DEFINER RPC)
     const match = profiles.find((p) => p.email.toLowerCase() === email);
-    if (!match) {
-      setAddError('No account found with that email address.');
-      setAddLoading(false);
-      return;
-    }
-
-    if (adminSet.has(match.user_id)) {
-      setAddError('That user is already an admin.');
-      setAddLoading(false);
-      return;
-    }
-
+    if (!match) { setAddError('No account found with that email address.'); setAddLoading(false); return; }
+    if (adminSet.has(match.user_id)) { setAddError('That user is already an admin.'); setAddLoading(false); return; }
     const { error } = await supabase.rpc('add_admin_user', { target_user_id: match.user_id });
     if (error) {
       setAddError(error.message);
     } else {
-      const newRow: AdminRow = { user_id: match.user_id, created_at: new Date().toISOString() };
-      setAdminRows((prev) => [newRow, ...prev]);
+      setAdminRows((prev) => [{ user_id: match.user_id, created_at: new Date().toISOString() }, ...prev]);
       setAddSuccess(`${match.full_name || match.email} has been added as an admin.`);
       setAddEmail('');
     }
@@ -185,13 +248,31 @@ export default function AdminPage() {
   }
 
   // ── Stats ───────────────────────────────────────────────────────────────────
-  const totalUsers    = subscriptions.length;
-  const activeCount   = subscriptions.filter((s) => s.status === 'active').length;
-  const trialCount    = subscriptions.filter((s) => s.status === 'trial').length;
-  const totalPrograms = programs.length;
+  const totalUsers     = subscriptions.length;
+  const activeCount    = subscriptions.filter((s) => s.status === 'active').length;
+  const trialCount     = subscriptions.filter((s) => s.status === 'trial').length;
+  const totalPrograms  = programs.length;
+  const liveCount      = programs.filter(isLive).length;
   const recentPrograms = programs.slice(0, 10);
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ─── QR button helper ────────────────────────────────────────────────────────
+  function QRButton({ program }: { program: ProgramRow }) {
+    if (!isLive(program)) return null;
+    return (
+      <button
+        onClick={() => setQrProgram(program)}
+        title="View QR Code"
+        className="inline-flex items-center gap-1.5 text-xs bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+        </svg>
+        QR
+      </button>
+    );
+  }
+
+  // ─── Admin nav ───────────────────────────────────────────────────────────────
   const adminNav = (
     <>
       <div className="p-6 border-b border-white/10">
@@ -206,9 +287,7 @@ export default function AdminPage() {
             key={item.key}
             onClick={() => { setTab(item.key); setAdminDrawerOpen(false); }}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-              tab === item.key
-                ? 'bg-white/10 text-white'
-                : 'text-blue-200 hover:text-white hover:bg-white/5'
+              tab === item.key ? 'bg-white/10 text-white' : 'text-blue-200 hover:text-white hover:bg-white/5'
             }`}
           >
             {item.label}
@@ -216,11 +295,8 @@ export default function AdminPage() {
         ))}
       </nav>
       <div className="p-4 border-t border-white/10">
-        <Link
-          href="/dashboard"
-          onClick={() => setAdminDrawerOpen(false)}
-          className="flex items-center gap-2 text-blue-300 hover:text-white text-sm transition-colors"
-        >
+        <Link href="/dashboard" onClick={() => setAdminDrawerOpen(false)}
+          className="flex items-center gap-2 text-blue-300 hover:text-white text-sm transition-colors">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -230,295 +306,295 @@ export default function AdminPage() {
     </>
   );
 
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <>
+      {/* QR modal */}
+      {qrProgram && <QRModal program={qrProgram} onClose={() => setQrProgram(null)} />}
 
-      {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-[#0F2B5B] flex items-center px-4 shadow-lg">
-        <button
-          onClick={() => setAdminDrawerOpen(true)}
-          className="p-2 -ml-1 rounded-lg text-blue-200 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <span className="ml-3 text-white font-bold">Admin Panel</span>
-      </div>
+      <div className="flex min-h-screen bg-gray-50">
 
-      {/* Mobile backdrop */}
-      {adminDrawerOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-          onClick={() => setAdminDrawerOpen(false)}
-        />
-      )}
+        {/* Mobile top bar */}
+        <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-[#0F2B5B] flex items-center px-4 shadow-lg">
+          <button onClick={() => setAdminDrawerOpen(true)}
+            className="p-2 -ml-1 rounded-lg text-blue-200 hover:text-white hover:bg-white/10 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="ml-3 text-white font-bold">Admin Panel</span>
+        </div>
 
-      {/* Mobile drawer */}
-      <aside className={`md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0F2B5B] flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${adminDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <button
-          onClick={() => setAdminDrawerOpen(false)}
-          className="absolute top-4 right-4 p-2 rounded-lg text-blue-300 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        {adminNav}
-      </aside>
+        {adminDrawerOpen && (
+          <div className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setAdminDrawerOpen(false)} />
+        )}
 
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 bg-[#0F2B5B] flex-col min-h-screen flex-shrink-0">
-        {adminNav}
-      </aside>
+        <aside className={`md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0F2B5B] flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${adminDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <button onClick={() => setAdminDrawerOpen(false)}
+            className="absolute top-4 right-4 p-2 rounded-lg text-blue-300 hover:text-white hover:bg-white/10 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          {adminNav}
+        </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0F2B5B]" />
-          </div>
-        ) : (
-          <>
-            {/* ── Overview ────────────────────────────────────────────── */}
-            {tab === 'overview' && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-[#0F2B5B]">Overview</h1>
-                  <p className="text-gray-500 mt-1">Platform-wide summary</p>
-                </div>
+        <aside className="hidden md:flex w-64 bg-[#0F2B5B] flex-col min-h-screen flex-shrink-0">
+          {adminNav}
+        </aside>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-                  {[
-                    { label: 'Total Users',           value: totalUsers,    color: 'bg-blue-50 text-blue-700' },
-                    { label: 'Active Subscriptions',  value: activeCount,   color: 'bg-green-50 text-green-700' },
-                    { label: 'Trial Users',           value: trialCount,    color: 'bg-amber-50 text-amber-700' },
-                    { label: 'Total Programs',        value: totalPrograms, color: 'bg-purple-50 text-purple-700' },
-                  ].map((stat) => (
-                    <div key={stat.label} className={`${stat.color} rounded-2xl p-6`}>
-                      <p className="text-3xl font-extrabold">{stat.value}</p>
-                      <p className="text-sm font-medium mt-1 opacity-80">{stat.label}</p>
+        {/* Main content */}
+        <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0F2B5B]" />
+            </div>
+          ) : (
+            <>
+              {/* ── Overview ──────────────────────────────────────────── */}
+              {tab === 'overview' && (
+                <div>
+                  <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-[#0F2B5B]">Overview</h1>
+                    <p className="text-gray-500 mt-1">Platform-wide summary</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                    {[
+                      { label: 'Total Users',          value: totalUsers,    color: 'bg-blue-50 text-blue-700' },
+                      { label: 'Active Subscriptions', value: activeCount,   color: 'bg-green-50 text-green-700' },
+                      { label: 'Trial Users',          value: trialCount,    color: 'bg-amber-50 text-amber-700' },
+                      { label: 'Live Programs',        value: liveCount,     color: 'bg-purple-50 text-purple-700' },
+                    ].map((stat) => (
+                      <div key={stat.label} className={`${stat.color} rounded-2xl p-6`}>
+                        <p className="text-3xl font-extrabold">{stat.value}</p>
+                        <p className="text-sm font-medium mt-1 opacity-80">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                      <h2 className="font-bold text-[#0F2B5B]">Recent Programs</h2>
+                      <span className="text-xs text-gray-400">{liveCount} live of {totalPrograms} total</span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h2 className="font-bold text-[#0F2B5B]">Recent Programs</h2>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                        <tr>
-                          <th className="px-6 py-3 text-left">Deceased Name</th>
-                          <th className="px-6 py-3 text-left">Created By</th>
-                          <th className="px-6 py-3 text-left">Created</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {recentPrograms.map((p) => (
-                          <tr key={p.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-3 font-medium text-gray-800">{p.deceased_name}</td>
-                            <td className="px-6 py-3 text-gray-600 text-xs">
-                              {displayName(profileMap.get(p.user_id))}
-                              {profileMap.get(p.user_id)?.email && (
-                                <span className="block text-gray-400">{profileMap.get(p.user_id)?.email}</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-3 text-gray-400">{fmtDate(p.created_at)}</td>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3 text-left">Deceased Name</th>
+                            <th className="px-6 py-3 text-left">Created By</th>
+                            <th className="px-6 py-3 text-left">Status</th>
+                            <th className="px-6 py-3 text-left">Created</th>
+                            <th className="px-6 py-3 text-left">QR</th>
                           </tr>
-                        ))}
-                        {recentPrograms.length === 0 && (
-                          <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-400">No programs yet.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── Users / Subscriptions ────────────────────────────────── */}
-            {(tab === 'users' || tab === 'subscriptions') && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-[#0F2B5B]">
-                    {tab === 'users' ? 'Users' : 'Subscriptions'}
-                  </h1>
-                  <p className="text-gray-500 mt-1">All registered users and their subscription status</p>
-                </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                        <tr>
-                          <th className="px-6 py-3 text-left">Name</th>
-                          <th className="px-6 py-3 text-left">Email</th>
-                          <th className="px-6 py-3 text-left">Status</th>
-                          <th className="px-6 py-3 text-left">Trial / Period End</th>
-                          <th className="px-6 py-3 text-left">Programs</th>
-                          <th className="px-6 py-3 text-left">Joined</th>
-                          <th className="px-6 py-3 text-left">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {userSummaries.map((u) => (
-                          <tr key={u.userId} className="hover:bg-gray-50">
-                            <td className="px-6 py-3 font-medium text-gray-800">
-                              {u.fullName || <span className="text-gray-400 italic">No name</span>}
-                              {adminSet.has(u.userId) && (
-                                <span className="ml-2 text-[10px] bg-[#C49A22] text-white px-1.5 py-0.5 rounded-full font-bold uppercase">
-                                  Admin
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-3 text-gray-500 text-xs">{u.email || '—'}</td>
-                            <td className="px-6 py-3"><StatusBadge status={u.status} /></td>
-                            <td className="px-6 py-3 text-gray-500">
-                              {u.status === 'trial' ? fmtDate(u.trialEndsAt) : fmtDate(u.periodEnd)}
-                            </td>
-                            <td className="px-6 py-3 text-gray-700 font-semibold">{u.programCount}</td>
-                            <td className="px-6 py-3 text-gray-400">{fmtDate(u.joinedAt)}</td>
-                            <td className="px-6 py-3">
-                              {u.status !== 'cancelled' ? (
-                                <button
-                                  onClick={() => handleSuspend(u.userId)}
-                                  disabled={suspending === u.userId}
-                                  className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-50 transition-colors"
-                                >
-                                  {suspending === u.userId ? 'Suspending…' : 'Suspend'}
-                                </button>
-                              ) : (
-                                <span className="text-xs text-gray-300">Suspended</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                        {userSummaries.length === 0 && (
-                          <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No users yet.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── Programs ─────────────────────────────────────────────── */}
-            {tab === 'programs' && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-[#0F2B5B]">Programs</h1>
-                  <p className="text-gray-500 mt-1">All programs created on the platform</p>
-                </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                        <tr>
-                          <th className="px-6 py-3 text-left">Deceased Name</th>
-                          <th className="px-6 py-3 text-left">Created By</th>
-                          <th className="px-6 py-3 text-left">Email</th>
-                          <th className="px-6 py-3 text-left">Created</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {programs.map((p) => {
-                          const prof = profileMap.get(p.user_id);
-                          return (
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {recentPrograms.map((p) => (
                             <tr key={p.id} className="hover:bg-gray-50">
                               <td className="px-6 py-3 font-medium text-gray-800">{p.deceased_name}</td>
-                              <td className="px-6 py-3 text-gray-700">{prof?.full_name || <span className="text-gray-400 italic">No name</span>}</td>
-                              <td className="px-6 py-3 text-gray-500 text-xs">{prof?.email || '—'}</td>
-                              <td className="px-6 py-3 text-gray-400">{fmtDate(p.created_at)}</td>
-                            </tr>
-                          );
-                        })}
-                        {programs.length === 0 && (
-                          <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400">No programs yet.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── Admins ───────────────────────────────────────────────── */}
-            {tab === 'admins' && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-[#0F2B5B]">Admins</h1>
-                  <p className="text-gray-500 mt-1">Manage who has access to this admin panel</p>
-                </div>
-
-                {/* Add admin form */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                  <h2 className="font-bold text-[#0F2B5B] mb-4">Add New Admin</h2>
-                  <form onSubmit={handleAddAdmin} className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="email"
-                      required
-                      placeholder="Enter user email address"
-                      value={addEmail}
-                      onChange={(e) => { setAddEmail(e.target.value); setAddError(''); setAddSuccess(''); }}
-                      className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2B5B]/30"
-                    />
-                    <button
-                      type="submit"
-                      disabled={addLoading}
-                      className="bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 whitespace-nowrap"
-                    >
-                      {addLoading ? 'Adding…' : 'Add Admin'}
-                    </button>
-                  </form>
-                  {addError && (
-                    <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2">{addError}</p>
-                  )}
-                  {addSuccess && (
-                    <p className="mt-3 text-sm text-green-700 bg-green-50 rounded-lg px-4 py-2">{addSuccess}</p>
-                  )}
-                  <p className="mt-3 text-xs text-gray-400">
-                    The user must already have a Mementa account. Admin access cannot be revoked through this panel.
-                  </p>
-                </div>
-
-                {/* Admin list */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                        <tr>
-                          <th className="px-6 py-3 text-left">Name</th>
-                          <th className="px-6 py-3 text-left">Email</th>
-                          <th className="px-6 py-3 text-left">Admin Since</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {adminRows.map((a) => {
-                          const prof = profileMap.get(a.user_id);
-                          return (
-                            <tr key={a.user_id} className="hover:bg-gray-50">
-                              <td className="px-6 py-3 font-medium text-gray-800">
-                                {prof?.full_name || <span className="text-gray-400 italic">No name</span>}
+                              <td className="px-6 py-3 text-gray-600 text-xs">
+                                {displayName(profileMap.get(p.user_id))}
+                                {profileMap.get(p.user_id)?.email && (
+                                  <span className="block text-gray-400">{profileMap.get(p.user_id)?.email}</span>
+                                )}
                               </td>
-                              <td className="px-6 py-3 text-gray-500">{prof?.email || shortId(a.user_id)}</td>
-                              <td className="px-6 py-3 text-gray-400">{fmtDate(a.created_at)}</td>
+                              <td className="px-6 py-3"><LiveBadge program={p} /></td>
+                              <td className="px-6 py-3 text-gray-400">{fmtDate(p.created_at)}</td>
+                              <td className="px-6 py-3"><QRButton program={p} /></td>
                             </tr>
-                          );
-                        })}
-                        {adminRows.length === 0 && (
-                          <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-400">No admins found.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
+                          ))}
+                          {recentPrograms.length === 0 && (
+                            <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">No programs yet.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-    </div>
+              )}
+
+              {/* ── Users / Subscriptions ─────────────────────────────── */}
+              {(tab === 'users' || tab === 'subscriptions') && (
+                <div>
+                  <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-[#0F2B5B]">
+                      {tab === 'users' ? 'Users' : 'Subscriptions'}
+                    </h1>
+                    <p className="text-gray-500 mt-1">All registered users and their subscription status</p>
+                  </div>
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3 text-left">Name</th>
+                            <th className="px-6 py-3 text-left">Email</th>
+                            <th className="px-6 py-3 text-left">Status</th>
+                            <th className="px-6 py-3 text-left">Trial / Period End</th>
+                            <th className="px-6 py-3 text-left">Programs</th>
+                            <th className="px-6 py-3 text-left">Joined</th>
+                            <th className="px-6 py-3 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {userSummaries.map((u) => (
+                            <tr key={u.userId} className="hover:bg-gray-50">
+                              <td className="px-6 py-3 font-medium text-gray-800">
+                                {u.fullName || <span className="text-gray-400 italic">No name</span>}
+                                {adminSet.has(u.userId) && (
+                                  <span className="ml-2 text-[10px] bg-[#C49A22] text-white px-1.5 py-0.5 rounded-full font-bold uppercase">Admin</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-3 text-gray-500 text-xs">{u.email || '—'}</td>
+                              <td className="px-6 py-3"><StatusBadge status={u.status} /></td>
+                              <td className="px-6 py-3 text-gray-500">
+                                {u.status === 'trial' ? fmtDate(u.trialEndsAt) : fmtDate(u.periodEnd)}
+                              </td>
+                              <td className="px-6 py-3 text-gray-700 font-semibold">{u.programCount}</td>
+                              <td className="px-6 py-3 text-gray-400">{fmtDate(u.joinedAt)}</td>
+                              <td className="px-6 py-3">
+                                {u.status !== 'cancelled' ? (
+                                  <button onClick={() => handleSuspend(u.userId)} disabled={suspending === u.userId}
+                                    className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-50 transition-colors">
+                                    {suspending === u.userId ? 'Suspending…' : 'Suspend'}
+                                  </button>
+                                ) : (
+                                  <span className="text-xs text-gray-300">Suspended</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                          {userSummaries.length === 0 && (
+                            <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No users yet.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Programs ──────────────────────────────────────────── */}
+              {tab === 'programs' && (
+                <div>
+                  <div className="mb-8 flex items-start justify-between gap-4">
+                    <div>
+                      <h1 className="text-3xl font-bold text-[#0F2B5B]">Programs</h1>
+                      <p className="text-gray-500 mt-1">All programs created on the platform</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium flex-shrink-0">
+                      <span className="flex items-center gap-1.5 text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
+                        <span className="w-2 h-2 rounded-full bg-green-500" />{liveCount} Live
+                      </span>
+                      <span className="flex items-center gap-1.5 text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+                        <span className="w-2 h-2 rounded-full bg-gray-400" />{totalPrograms - liveCount} Archived
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3 text-left">Deceased Name</th>
+                            <th className="px-6 py-3 text-left">Created By</th>
+                            <th className="px-6 py-3 text-left">Email</th>
+                            <th className="px-6 py-3 text-left">Status</th>
+                            <th className="px-6 py-3 text-left">Expires</th>
+                            <th className="px-6 py-3 text-left">Created</th>
+                            <th className="px-6 py-3 text-left">QR Code</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {programs.map((p) => {
+                            const prof = profileMap.get(p.user_id);
+                            return (
+                              <tr key={p.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-3 font-medium text-gray-800">{p.deceased_name}</td>
+                                <td className="px-6 py-3 text-gray-700">{prof?.full_name || <span className="text-gray-400 italic">No name</span>}</td>
+                                <td className="px-6 py-3 text-gray-500 text-xs">{prof?.email || '—'}</td>
+                                <td className="px-6 py-3"><LiveBadge program={p} /></td>
+                                <td className="px-6 py-3 text-gray-400 text-xs">{fmtDateTime(p.expires_at)}</td>
+                                <td className="px-6 py-3 text-gray-400">{fmtDate(p.created_at)}</td>
+                                <td className="px-6 py-3">
+                                  {isLive(p) ? (
+                                    <QRButton program={p} />
+                                  ) : (
+                                    <span className="text-xs text-gray-300">—</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {programs.length === 0 && (
+                            <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No programs yet.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Admins ────────────────────────────────────────────── */}
+              {tab === 'admins' && (
+                <div>
+                  <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-[#0F2B5B]">Admins</h1>
+                    <p className="text-gray-500 mt-1">Manage who has access to this admin panel</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                    <h2 className="font-bold text-[#0F2B5B] mb-4">Add New Admin</h2>
+                    <form onSubmit={handleAddAdmin} className="flex flex-col sm:flex-row gap-3">
+                      <input type="email" required placeholder="Enter user email address" value={addEmail}
+                        onChange={(e) => { setAddEmail(e.target.value); setAddError(''); setAddSuccess(''); }}
+                        className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2B5B]/30" />
+                      <button type="submit" disabled={addLoading}
+                        className="bg-[#0F2B5B] hover:bg-[#1a3d7c] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 whitespace-nowrap">
+                        {addLoading ? 'Adding…' : 'Add Admin'}
+                      </button>
+                    </form>
+                    {addError   && <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2">{addError}</p>}
+                    {addSuccess && <p className="mt-3 text-sm text-green-700 bg-green-50 rounded-lg px-4 py-2">{addSuccess}</p>}
+                    <p className="mt-3 text-xs text-gray-400">The user must already have a Mementa account. Admin access cannot be revoked through this panel.</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3 text-left">Name</th>
+                            <th className="px-6 py-3 text-left">Email</th>
+                            <th className="px-6 py-3 text-left">Admin Since</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {adminRows.map((a) => {
+                            const prof = profileMap.get(a.user_id);
+                            return (
+                              <tr key={a.user_id} className="hover:bg-gray-50">
+                                <td className="px-6 py-3 font-medium text-gray-800">{prof?.full_name || <span className="text-gray-400 italic">No name</span>}</td>
+                                <td className="px-6 py-3 text-gray-500">{prof?.email || shortId(a.user_id)}</td>
+                                <td className="px-6 py-3 text-gray-400">{fmtDate(a.created_at)}</td>
+                              </tr>
+                            );
+                          })}
+                          {adminRows.length === 0 && (
+                            <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-400">No admins found.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </main>
+      </div>
+    </>
   );
 }
