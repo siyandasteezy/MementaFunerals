@@ -4,6 +4,7 @@
 -- ─────────────────────────────────────────────────────────────────
 
 -- 1. List all users (name + email + phone) — callable only by admins
+DROP FUNCTION IF EXISTS get_admin_users_list();
 CREATE OR REPLACE FUNCTION get_admin_users_list()
 RETURNS TABLE (
   user_id    UUID,
