@@ -30,16 +30,15 @@ serve(async (req) => {
   const amount = p.get('Amount')               ?? '';
   const hash   = p.get('Hash')                 ?? '';
 
-  const SITE_CODE   = Deno.env.get('OZOW_SITE_CODE')!;
-  const PRIVATE_KEY = Deno.env.get('OZOW_PRIVATE_KEY')!;
+  const SITE_CODE    = Deno.env.get('OZOW_SITE_CODE')!;
+  const PRIVATE_KEY  = Deno.env.get('OZOW_PRIVATE_KEY')!;
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  // Verify Ozow signature: SHA512(lower(SiteCode+TransactionId+TransactionReference+Amount+Status+PrivateKey))
+  // Verify Ozow signature
   const expected = await sha512(
     (SITE_CODE + txId + txRef + amount + status + PRIVATE_KEY).toLowerCase()
   );
-
   if (expected.toLowerCase() !== hash.toLowerCase()) {
     console.error('Hash mismatch — possible spoofed request');
     return new Response('Forbidden', { status: 403 });
@@ -47,13 +46,23 @@ serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+  // Resolve the user_id from the subscription row matching this txRef
+  const { data: subRow } = await supabase
+    .from('subscriptions')
+    .select('user_id')
+    .eq('ozow_transaction_ref', txRef)
+    .maybeSingle();
+
+  const userId  = subRow?.user_id ?? null;
+  const months  = parseMonthsFromTxRef(txRef);
+  const amountNum = parseFloat(amount) || null;
+
   if (status === 'Complete') {
-    // Determine subscription duration from the TxRef
-    const months = parseMonthsFromTxRef(txRef);
     const periodEnd = new Date();
     periodEnd.setMonth(periodEnd.getMonth() + months);
 
-    const { error } = await supabase
+    // Update subscription to active
+    const { error: subError } = await supabase
       .from('subscriptions')
       .update({
         status:              'active',
@@ -62,9 +71,21 @@ serve(async (req) => {
       })
       .eq('ozow_transaction_ref', txRef);
 
-    if (error) {
-      console.error('DB update failed:', error);
+    if (subError) {
+      console.error('Subscription update failed:', subError);
       return new Response('DB error', { status: 500 });
+    }
+
+    // Log payment record
+    if (userId) {
+      await supabase.from('payments').insert({
+        user_id:              userId,
+        ozow_transaction_id:  txId,
+        ozow_transaction_ref: txRef,
+        amount:               amountNum,
+        months,
+        status:               'completed',
+      });
     }
 
     console.log(`✅ Subscription activated — ref: ${txRef} | ${months} month(s) | expires: ${periodEnd.toISOString()}`);
@@ -74,6 +95,18 @@ serve(async (req) => {
       .from('subscriptions')
       .update({ status: 'expired', ozow_transaction_ref: null })
       .eq('ozow_transaction_ref', txRef);
+
+    // Log failed payment
+    if (userId) {
+      await supabase.from('payments').insert({
+        user_id:              userId,
+        ozow_transaction_id:  txId,
+        ozow_transaction_ref: txRef,
+        amount:               amountNum,
+        months,
+        status:               status === 'Cancelled' ? 'cancelled' : 'failed',
+      });
+    }
 
     console.log(`❌ Payment ${status} — ref: ${txRef}`);
   }
