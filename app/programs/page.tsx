@@ -30,13 +30,19 @@ function Spinner() {
 function ProgramsList() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [fetchError, setFetchError] = useState('');
 
   async function load() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const all = await getAllPrograms(user.id);
-    setPrograms(all);
-    setLoading(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      const all = await getAllPrograms(user.id);
+      setPrograms(all);
+    } catch (err: unknown) {
+      setFetchError(err instanceof Error ? err.message : 'Failed to load programs.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -49,6 +55,12 @@ function ProgramsList() {
         <Sidebar />
         <main className="flex-1 overflow-auto p-4 pt-16 sm:p-6 md:p-8 md:pt-8">
           <div className="max-w-6xl mx-auto">
+
+            {fetchError && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+                {fetchError}
+              </div>
+            )}
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
