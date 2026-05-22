@@ -88,7 +88,7 @@ export default function SubscribePage() {
     setError('');
     try {
       const { data, error: fnError } = await supabase.functions.invoke('create-ozow-payment', {
-        body: { userId, userEmail, amount: plan.amount, months: plan.months },
+        body: { userId, userEmail, months: plan.months },
       });
       if (fnError) throw new Error(fnError.message);
       if (!data?.url) throw new Error('No payment URL returned.');
@@ -261,12 +261,17 @@ export default function SubscribePage() {
                         <div>
                           <p className="text-sm font-semibold text-gray-700 mb-3">Accepted payment methods</p>
                           <div className="flex flex-wrap gap-2">
-                            {['Instant EFT', 'Visa', 'Mastercard', 'All SA banks'].map((m) => (
-                              <span key={m} className="bg-gray-50 border border-gray-200 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg">{m}</span>
+                            {[
+                              { label: 'Instant EFT', icon: '🏦' },
+                              { label: 'Credit / Debit Card', icon: '💳' },
+                            ].map((m) => (
+                              <span key={m.label} className="bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5">
+                                <span>{m.icon}</span>{m.label}
+                              </span>
                             ))}
                           </div>
                           <p className="text-xs text-gray-400 mt-3">
-                            Payments processed securely by <strong>Ozow</strong> — South Africa&apos;s leading instant payment platform.
+                            Payments processed securely by <strong>Ozow</strong>. You will be redirected to complete payment on Ozow&apos;s encrypted checkout page.
                           </p>
                         </div>
 
