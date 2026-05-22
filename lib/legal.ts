@@ -244,6 +244,7 @@ export const COMPANY_PROFILE = {
   vatNumber:    '',
   email:        'support@mementa.co.za',
   phone:        '+27 65 331 3422',
+  whatsapp:     '+27653313422',
   address:      '304 Oak Avenue, Ferndale, Randburg, South Africa',
   website:      'https://mementa.co.za',
 };
