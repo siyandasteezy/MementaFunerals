@@ -63,6 +63,22 @@ serve(async (req) => {
 
     const hashCheck = await sha512(hashInput);
 
+    // Debug log — prints every field going into the hash (private key hidden)
+    console.log('🔐 Hash input breakdown:');
+    console.log('  SiteCode:   ', SITE_CODE);
+    console.log('  Country:    ', country);
+    console.log('  Currency:   ', currency);
+    console.log('  Amount:     ', amount);
+    console.log('  TxRef:      ', txRef);
+    console.log('  BankRef:    ', bankRef);
+    console.log('  CancelUrl:  ', cancelUrl);
+    console.log('  ErrorUrl:   ', errorUrl);
+    console.log('  SuccessUrl: ', successUrl);
+    console.log('  NotifyUrl:  ', notifyUrl);
+    console.log('  IsTest:     ', IS_TEST);
+    console.log('  PrivateKey: ', PRIVATE_KEY ? `[SET — ${PRIVATE_KEY.length} chars, starts: ${PRIVATE_KEY.slice(0, 4)}...]` : '[NOT SET ❌]');
+    console.log('  HashCheck:  ', hashCheck.slice(0, 20) + '...');
+
     // Persist a pending subscription row so the webhook can match on txRef
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { error: upsertError } = await supabase.from('subscriptions').upsert(
