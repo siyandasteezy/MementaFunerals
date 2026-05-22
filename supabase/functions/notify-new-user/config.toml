@@ -1,0 +1,3 @@
+# Disable JWT verification — this function only sends internal admin
+# notification emails to hardcoded addresses, so no auth is needed.
+verify_jwt = false
