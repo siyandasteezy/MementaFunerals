@@ -15,9 +15,18 @@ serve(async (req) => {
 
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     if (!RESEND_API_KEY) {
-      console.error('RESEND_API_KEY is not set — skipping notification');
+      console.error('❌ RESEND_API_KEY secret is not set');
       return new Response('Email service not configured', { status: 200, headers: cors });
     }
+
+    // Use RESEND_FROM secret if domain is verified, otherwise fall back to
+    // Resend's default sender (works immediately, no domain verification needed).
+    // Once mementa.co.za is verified in Resend, set:
+    //   RESEND_FROM = Mementa <noreply@mementa.co.za>
+    const from = Deno.env.get('RESEND_FROM') ?? 'Mementa <onboarding@resend.dev>';
+
+    console.log(`📧 Sending new-user notification — from: ${from}`);
+    console.log(`   Name: ${name || '—'} | Email: ${email} | Phone: ${phone || '—'} | Business: ${businessName || '—'}`);
 
     const subject = `New Mementa Registration — ${name || email}`;
 
@@ -48,9 +57,9 @@ serve(async (req) => {
     </div>
     <div class="body">
       <table>
-        <tr><td>Full Name</td><td>${name        || '—'}</td></tr>
-        <tr><td>Email</td>    <td>${email       || '—'}</td></tr>
-        <tr><td>Phone</td>    <td>${phone       || '—'}</td></tr>
+        <tr><td>Full Name</td><td>${name         || '—'}</td></tr>
+        <tr><td>Email</td>    <td>${email        || '—'}</td></tr>
+        <tr><td>Phone</td>    <td>${phone        || '—'}</td></tr>
         <tr><td>Business</td> <td>${businessName || '—'}</td></tr>
       </table>
     </div>
@@ -59,43 +68,42 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    // Send to all notify addresses in parallel
+    // Send to all notify addresses, log each result individually
     const results = await Promise.allSettled(
-      NOTIFY_ADDRESSES.map((to) =>
-        fetch('https://api.resend.com/emails', {
+      NOTIFY_ADDRESSES.map(async (to) => {
+        const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${RESEND_API_KEY}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            from:    'Mementa <noreply@mementa.co.za>',
-            to,
-            subject,
-            html,
-          }),
-        }).then(async (r) => {
-          if (!r.ok) {
-            const txt = await r.text();
-            throw new Error(`Resend error ${r.status}: ${txt}`);
-          }
-          return r.json();
-        })
-      )
+          body: JSON.stringify({ from, to, subject, html, reply_to: email }),
+        });
+
+        const body = await res.text();
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} → ${body}`);
+        }
+        console.log(`✅ Notified ${to} — Resend response: ${body}`);
+        return body;
+      })
     );
 
     results.forEach((r, i) => {
       if (r.status === 'rejected') {
-        console.error(`Failed to notify ${NOTIFY_ADDRESSES[i]}:`, r.reason);
-      } else {
-        console.log(`Notified ${NOTIFY_ADDRESSES[i]} ✓`);
+        console.error(`❌ Failed to notify ${NOTIFY_ADDRESSES[i]}: ${r.reason}`);
       }
     });
 
+    const allFailed = results.every((r) => r.status === 'rejected');
+    if (allFailed) {
+      console.error('❌ All notification emails failed');
+    }
+
     return new Response('OK', { status: 200, headers: cors });
+
   } catch (err) {
-    console.error('notify-new-user error:', err);
-    // Return 200 so the client registration flow is never blocked
+    console.error('❌ notify-new-user fatal error:', err);
     return new Response(String(err), { status: 200, headers: cors });
   }
 });
